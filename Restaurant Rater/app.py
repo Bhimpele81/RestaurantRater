@@ -7,7 +7,7 @@ from flask import Flask, g, render_template, request, redirect, url_for
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "restaurants.db"
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="Templates")
 
 # ---------- Database helpers ----------
 
@@ -46,8 +46,7 @@ def init_db():
     )
     db.commit()
 
-@app.before_first_request
-def setup():
+with app.app_context():
     init_db()
 
 # ---------- Routes ----------
@@ -119,4 +118,4 @@ def restaurant_detail(restaurant_id):
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
