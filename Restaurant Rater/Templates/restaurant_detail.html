@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>{{ restaurant.name }}</h2>
+
+  <p>
+    {% if restaurant.cuisine %}<strong>Cuisine:</strong> {{ restaurant.cuisine }}<br>{% endif %}
+    {% if restaurant.address %}<strong>Address:</strong> {{ restaurant.address }}{% endif %}
+  </p>
+
+  <h3>Add review</h3>
+  <form method="post">
+    <label>
+      Rating (1–5)<br>
+      <select name="rating" required>
+        {% for n in range(1, 6) %}
+          <option value="{{ n }}">{{ n }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <br><br>
+    <label>
+      Notes<br>
+      <textarea name="notes" rows="4" cols="40"></textarea>
+    </label>
+    <br><br>
+    <button type="submit">Save review</button>
+  </form>
+
+  <h3>Reviews</h3>
+  {% if reviews %}
+    <ul>
+      {% for review in reviews %}
+        <li>
+          <strong>{{ review.rating }}/5</strong><br>
+          {% if review.notes %}{{ review.notes }}<br>{% endif %}
+          <small>{{ review.created_at }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No reviews yet.</p>
+  {% endif %}
+{% endblock %}

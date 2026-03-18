@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h2>Restaurants</h2>
+
+  {% if restaurants %}
+    <ul>
+      {% for r in restaurants %}
+        <li>
+          <a href="{{ url_for('restaurant_detail', restaurant_id=r.id) }}">
+            {{ r.name }}
+          </a>
+          {% if r.cuisine %} - {{ r.cuisine }}{% endif %}
+          {% if r.address %} | {{ r.address }}{% endif %}
+          {% if r.review_count %}
+            <br>
+            Avg rating: {{ "%.1f"|format(r.avg_rating) }} ({{ r.review_count }} reviews)
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No restaurants yet. <a href="{{ url_for('add_restaurant') }}">Add one</a>.</p>
+  {% endif %}
+{% endblock %}
