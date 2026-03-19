@@ -19,6 +19,22 @@
             <span class="rating-pill">{{ "%.1f"|format(restaurant.rating) }}/10</span>
         </div>
 
+        <p><strong>Date:</strong>
+            {% if restaurant.visit_date %}
+                {{ restaurant.visit_date }}
+            {% else %}
+                Not added yet.
+            {% endif %}
+        </p>
+
+        <p><strong>Who Was There:</strong>
+            {% if restaurant.attendees %}
+                {{ restaurant.attendees }}
+            {% else %}
+                Not added yet.
+            {% endif %}
+        </p>
+
         <p><strong>Dishes Tried:</strong>
             {% if restaurant.dishes_tried %}
                 {{ restaurant.dishes_tried }}

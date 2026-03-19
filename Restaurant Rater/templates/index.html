@@ -58,6 +58,14 @@
             {% if highlight.type == "restaurant" %}
                 <p class="category-pill">{{ highlight.category }}</p>
 
+                {% if highlight.visit_date %}
+                    <p class="card-description"><strong>Date:</strong> {{ highlight.visit_date }}</p>
+                {% endif %}
+
+                {% if highlight.attendees %}
+                    <p class="card-description"><strong>Who Was There:</strong> {{ highlight.attendees }}</p>
+                {% endif %}
+
                 {% if highlight.dishes_tried %}
                     <p class="card-description"><strong>Dishes Tried:</strong> {{ highlight.dishes_tried }}</p>
                 {% endif %}
@@ -117,6 +125,14 @@
                         </div>
 
                         <p class="category-pill">{{ restaurant.category }}</p>
+
+                        {% if restaurant.visit_date %}
+                            <p class="card-description"><strong>Date:</strong> {{ restaurant.visit_date }}</p>
+                        {% endif %}
+
+                        {% if restaurant.attendees %}
+                            <p class="card-description"><strong>Who Was There:</strong> {{ restaurant.attendees }}</p>
+                        {% endif %}
 
                         {% if restaurant.dishes_tried %}
                             <p class="card-description"><strong>Dishes Tried:</strong> {{ restaurant.dishes_tried }}</p>
