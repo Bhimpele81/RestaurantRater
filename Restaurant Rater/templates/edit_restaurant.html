@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="content-section">
+    <div class="form-card">
+        <h2>Edit Restaurant</h2>
+        <p>Update the restaurant details below.</p>
+
+        <form method="POST" enctype="multipart/form-data">
+            <label for="name">Restaurant Name</label>
+            <input type="text" id="name" name="name" value="{{ restaurant.name }}" required>
+
+            <label for="category">Cuisine</label>
+            <select id="category" name="category" required>
+                <option value="">Select a cuisine</option>
+                {% for cuisine in cuisines %}
+                    <option value="{{ cuisine }}" {% if restaurant.category == cuisine %}selected{% endif %}>{{ cuisine }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="city">City</label>
+            <input type="text" id="city" name="city" value="{{ restaurant.city or '' }}" required>
+
+            <label for="state">State</label>
+            <input type="text" id="state" name="state" value="{{ restaurant.state or '' }}" required>
+
+            <label for="description">Notes</label>
+            <textarea id="description" name="description" rows="5">{{ restaurant.description or '' }}</textarea>
+
+            <label for="dishes_tried">Dishes Tried</label>
+            <input type="text" id="dishes_tried" name="dishes_tried" value="{{ restaurant.dishes_tried or '' }}">
+
+            <label for="attendees">Who Was There</label>
+            <input type="text" id="attendees" name="attendees" value="{{ restaurant.attendees or '' }}">
+
+            <label for="visit_date">Visit Date</label>
+            <input type="date" id="visit_date" name="visit_date" value="{{ restaurant.visit_date or '' }}">
+
+            <label for="rating">Rating (1.0 to 10.0)</label>
+            <input
+                type="number"
+                id="rating"
+                name="rating"
+                min="1"
+                max="10"
+                step="0.1"
+                value="{{ restaurant.rating if restaurant.rating is not none else '' }}"
+                required
+            >
+
+            {% if restaurant.image_filename %}
+                <div style="margin-top: 14px;">
+                    <p><strong>Current Photo:</strong></p>
+                    <img
+                        src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
+                        alt="{{ restaurant.name }}"
+                        class="detail-image"
+                    >
+                </div>
+            {% endif %}
+
+            <label for="image">Replace Photo</label>
+            <input type="file" id="image" name="image" accept="image/*">
+
+            <div style="margin-top: 18px;">
+                <button type="submit">Update Restaurant</button>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -436,6 +436,121 @@ def restaurant_detail(id):
     return render_template("restaurant_detail.html", restaurant=restaurant)
 
 
+@app.route("/edit_restaurant/<int:id>", methods=["GET", "POST"])
+def edit_restaurant(id):
+    conn = get_db_connection()
+
+    restaurant = conn.execute(
+        "SELECT * FROM restaurants WHERE id = ?",
+        (id,)
+    ).fetchone()
+
+    if not restaurant:
+        conn.close()
+        return redirect(url_for("restaurants_list"))
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        category = request.form.get("category", "").strip()
+        description = request.form.get("description", "").strip()
+        dishes_tried = request.form.get("dishes_tried", "").strip()
+        attendees = request.form.get("attendees", "").strip()
+        visit_date = request.form.get("visit_date", "").strip()
+        city = request.form.get("city", "").strip()
+        state = request.form.get("state", "").strip()
+
+        rating_value = request.form.get("rating", "").strip()
+        rating = float(rating_value) if rating_value else None
+
+        latitude, longitude = geocode_city_state(city, state)
+
+        image_filename = restaurant["image_filename"]
+        image = request.files.get("image")
+        if image and image.filename:
+            new_filename = save_uploaded_file(image)
+            if new_filename:
+                delete_uploaded_file(restaurant["image_filename"])
+                image_filename = new_filename
+
+        conn.execute(
+            """
+            UPDATE restaurants
+            SET name = ?,
+                category = ?,
+                description = ?,
+                dishes_tried = ?,
+                attendees = ?,
+                visit_date = ?,
+                rating = ?,
+                image_filename = ?,
+                city = ?,
+                state = ?,
+                latitude = ?,
+                longitude = ?
+            WHERE id = ?
+            """,
+            (
+                name,
+                category,
+                description,
+                dishes_tried,
+                attendees,
+                visit_date,
+                rating,
+                image_filename,
+                city,
+                state,
+                latitude,
+                longitude,
+                id
+            )
+        )
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for("restaurant_detail", id=id))
+
+    conn.close()
+
+    return render_template(
+        "edit_restaurant.html",
+        restaurant=restaurant,
+        cuisines=[
+            "American",
+            "Barbecue",
+            "Breakfast",
+            "Burgers",
+            "Cajun",
+            "Caribbean",
+            "Chinese",
+            "Comfort Food",
+            "Deli",
+            "French",
+            "German",
+            "Greek",
+            "Hawaiian",
+            "Indian",
+            "Italian",
+            "Japanese",
+            "Korean",
+            "Mediterranean",
+            "Mexican",
+            "Middle Eastern",
+            "Pizza",
+            "Seafood",
+            "Soul Food",
+            "Southern",
+            "Spanish",
+            "Steakhouse",
+            "Sushi",
+            "Thai",
+            "Turkish",
+            "Vietnamese",
+            "Other"
+        ]
+    )
+
+
 @app.route("/delete_restaurant/<int:id>", methods=["POST"])
 def delete_restaurant(id):
     conn = get_db_connection()
@@ -504,6 +619,58 @@ def recipe_detail(id):
     conn.close()
 
     return render_template("recipe_detail.html", recipe=recipe, photos=photos)
+
+
+@app.route("/edit_recipe/<int:id>", methods=["GET", "POST"])
+def edit_recipe(id):
+    conn = get_db_connection()
+
+    recipe = conn.execute(
+        "SELECT * FROM recipes WHERE id = ?",
+        (id,)
+    ).fetchone()
+
+    if not recipe:
+        conn.close()
+        return redirect(url_for("recipes_list"))
+
+    photos = conn.execute(
+        "SELECT * FROM recipe_photos WHERE recipe_id = ? ORDER BY id ASC",
+        (id,)
+    ).fetchall()
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        description = request.form.get("description", "").strip()
+
+        rating_value = request.form.get("rating", "").strip()
+        rating = float(rating_value) if rating_value else None
+
+        conn.execute(
+            """
+            UPDATE recipes
+            SET name = ?, description = ?, rating = ?
+            WHERE id = ?
+            """,
+            (name, description, rating, id)
+        )
+
+        files = request.files.getlist("images")
+        for file in files:
+            filename = save_uploaded_file(file)
+            if filename:
+                conn.execute(
+                    "INSERT INTO recipe_photos (recipe_id, filename) VALUES (?, ?)",
+                    (id, filename)
+                )
+
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for("recipe_detail", id=id))
+
+    conn.close()
+    return render_template("edit_recipe.html", recipe=recipe, photos=photos)
 
 
 @app.route("/delete_recipe/<int:id>", methods=["POST"])
