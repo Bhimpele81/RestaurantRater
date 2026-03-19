@@ -3,35 +3,34 @@
 {% block content %}
 <section class="hero-card">
     <h2>Dinner Rater</h2>
-    <p>Himpele Family Favorites!</p>
 
     <div style="margin-top: 18px;">
         <a class="button" href="{{ url_for('add_restaurant') }}">Add Restaurant</a>
         <a class="button" href="{{ url_for('add_recipe') }}">Add Recipe</a>
     </div>
 
-    <!-- PIZZA PHOTO FIRST -->
-    <div style="margin-top: 24px;">
-        <img
-            src="https://i.imgur.com/LV0mwRG.jpeg"
-            alt="Family pizza"
-            class="detail-image"
-        >
-    </div>
+    <div style="margin-top: 24px; display: flex; gap: 15px; align-items: stretch;">
+        <div style="width: 50%; background: #dbeafe; border-radius: 10px; padding: 10px;">
+            <img
+                src="https://i.imgur.com/LV0mwRG.jpeg"
+                alt="Family pizza"
+                style="width: 100%; height: 320px; object-fit: contain; border-radius: 10px; display: block;"
+            >
+        </div>
 
-    <!-- FOOD PHOTO SECOND -->
-    <div style="margin-top: 16px;">
-        <img
-            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836"
-            alt="Food"
-            class="detail-image"
-        >
+        <div style="width: 50%; background: #dbeafe; border-radius: 10px; padding: 10px;">
+            <img
+                src="https://images.unsplash.com/photo-1504674900247-0877df9cc836"
+                alt="Food"
+                style="width: 100%; height: 320px; object-fit: contain; border-radius: 10px; display: block;"
+            >
+        </div>
     </div>
 </section>
 
 <section class="content-section">
     <div class="section-title">
-        <h2>Recent Highlights</h2>
+        <h2 style="color: #0f2a44;">Himpele Family Favorites</h2>
         <p class="muted-text">Latest favorites with photos</p>
     </div>
 
