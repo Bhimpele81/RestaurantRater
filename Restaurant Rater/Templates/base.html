@@ -1,21 +1,33 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Restaurant Rater</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Rater</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <header>
-    <h1><a href="{{ url_for('index') }}">Restaurant Rater</a></h1>
-    <nav>
-      <a href="{{ url_for('index') }}">All restaurants</a>
-      <a href="{{ url_for('add_restaurant') }}">Add restaurant</a>
-    </nav>
-  </header>
+    <header>
+        <h1><a href="{{ url_for('index') }}">Restaurant Rater</a></h1>
+        <nav>
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('add_restaurant') }}">Add Restaurant</a>
+            <a href="{{ url_for('add_recipe') }}">Add Recipe</a>
+        </nav>
+    </header>
 
-  <main>
-    {% block content %}{% endblock %}
-  </main>
+    <main class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
 </body>
 </html>
