@@ -1,5 +1,8 @@
 import os
 import sqlite3
+import json
+import urllib.parse
+import urllib.request
 from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
@@ -53,6 +56,57 @@ def save_uploaded_file(file):
     return final_name
 
 
+def delete_uploaded_file(filename):
+    if not filename:
+        return
+
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    if os.path.exists(file_path):
+        try:
+            os.remove(file_path)
+        except OSError:
+            pass
+
+
+def ensure_column(conn, table_name, column_name, column_definition):
+    columns = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    existing_column_names = [column["name"] for column in columns]
+
+    if column_name not in existing_column_names:
+        conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}")
+
+
+def geocode_city_state(city, state):
+    if not city or not state:
+        return None, None
+
+    query = f"{city}, {state}, USA"
+    params = urllib.parse.urlencode({
+        "q": query,
+        "format": "json",
+        "limit": 1
+    })
+    url = f"https://nominatim.openstreetmap.org/search?{params}"
+
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "DinnerRater/1.0"}
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.loads(response.read().decode("utf-8"))
+
+        if data:
+            lat = float(data[0]["lat"])
+            lon = float(data[0]["lon"])
+            return lat, lon
+    except Exception:
+        pass
+
+    return None, None
+
+
 def init_db():
     conn = get_db_connection()
 
@@ -66,7 +120,11 @@ def init_db():
         attendees TEXT,
         visit_date TEXT,
         rating REAL,
-        image_filename TEXT
+        image_filename TEXT,
+        city TEXT,
+        state TEXT,
+        latitude REAL,
+        longitude REAL
     )
     """)
 
@@ -87,6 +145,19 @@ def init_db():
         FOREIGN KEY (recipe_id) REFERENCES recipes (id)
     )
     """)
+
+    ensure_column(conn, "restaurants", "name", "TEXT")
+    ensure_column(conn, "restaurants", "category", "TEXT")
+    ensure_column(conn, "restaurants", "description", "TEXT")
+    ensure_column(conn, "restaurants", "dishes_tried", "TEXT")
+    ensure_column(conn, "restaurants", "attendees", "TEXT")
+    ensure_column(conn, "restaurants", "visit_date", "TEXT")
+    ensure_column(conn, "restaurants", "rating", "REAL")
+    ensure_column(conn, "restaurants", "image_filename", "TEXT")
+    ensure_column(conn, "restaurants", "city", "TEXT")
+    ensure_column(conn, "restaurants", "state", "TEXT")
+    ensure_column(conn, "restaurants", "latitude", "REAL")
+    ensure_column(conn, "restaurants", "longitude", "REAL")
 
     conn.commit()
     conn.close()
@@ -149,13 +220,26 @@ def index():
 
     recent_highlights = recent_highlights[:3]
 
+    map_restaurants = []
+    for restaurant in restaurants:
+        if restaurant["latitude"] is not None and restaurant["longitude"] is not None:
+            map_restaurants.append({
+                "id": restaurant["id"],
+                "name": restaurant["name"],
+                "city": restaurant["city"] or "",
+                "state": restaurant["state"] or "",
+                "latitude": restaurant["latitude"],
+                "longitude": restaurant["longitude"]
+            })
+
     conn.close()
 
     return render_template(
         "index.html",
         restaurants=restaurants,
         recipes=recipes,
-        recent_highlights=recent_highlights
+        recent_highlights=recent_highlights,
+        map_restaurants=map_restaurants
     )
 
 
@@ -175,9 +259,20 @@ def restaurants_list():
                OR dishes_tried LIKE ?
                OR attendees LIKE ?
                OR visit_date LIKE ?
+               OR city LIKE ?
+               OR state LIKE ?
             ORDER BY id DESC
             """,
-            (f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%", f"%{q}%")
+            (
+                f"%{q}%",
+                f"%{q}%",
+                f"%{q}%",
+                f"%{q}%",
+                f"%{q}%",
+                f"%{q}%",
+                f"%{q}%",
+                f"%{q}%"
+            )
         ).fetchall()
     else:
         restaurants = conn.execute(
@@ -251,9 +346,13 @@ def add_restaurant():
         dishes_tried = request.form.get("dishes_tried", "").strip()
         attendees = request.form.get("attendees", "").strip()
         visit_date = request.form.get("visit_date", "").strip()
+        city = request.form.get("city", "").strip()
+        state = request.form.get("state", "").strip()
 
         rating_value = request.form.get("rating", "").strip()
         rating = float(rating_value) if rating_value else None
+
+        latitude, longitude = geocode_city_state(city, state)
 
         image_filename = None
         image = request.files.get("image")
@@ -264,10 +363,23 @@ def add_restaurant():
         conn.execute(
             """
             INSERT INTO restaurants
-            (name, category, description, dishes_tried, attendees, visit_date, rating, image_filename)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (name, category, description, dishes_tried, attendees, visit_date, rating, image_filename, city, state, latitude, longitude)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (name, category, description, dishes_tried, attendees, visit_date, rating, image_filename)
+            (
+                name,
+                category,
+                description,
+                dishes_tried,
+                attendees,
+                visit_date,
+                rating,
+                image_filename,
+                city,
+                state,
+                latitude,
+                longitude
+            )
         )
         conn.commit()
         conn.close()
@@ -276,7 +388,39 @@ def add_restaurant():
 
     return render_template(
         "add_restaurant.html",
-        cuisines=["American", "Mexican", "Italian", "Indian", "Chinese", "Other"]
+        cuisines=[
+            "American",
+            "Barbecue",
+            "Breakfast",
+            "Burgers",
+            "Cajun",
+            "Caribbean",
+            "Chinese",
+            "Comfort Food",
+            "Deli",
+            "French",
+            "German",
+            "Greek",
+            "Hawaiian",
+            "Indian",
+            "Italian",
+            "Japanese",
+            "Korean",
+            "Mediterranean",
+            "Mexican",
+            "Middle Eastern",
+            "Pizza",
+            "Seafood",
+            "Soul Food",
+            "Southern",
+            "Spanish",
+            "Steakhouse",
+            "Sushi",
+            "Thai",
+            "Turkish",
+            "Vietnamese",
+            "Other"
+        ]
     )
 
 
@@ -292,12 +436,32 @@ def restaurant_detail(id):
     return render_template("restaurant_detail.html", restaurant=restaurant)
 
 
+@app.route("/delete_restaurant/<int:id>", methods=["POST"])
+def delete_restaurant(id):
+    conn = get_db_connection()
+
+    restaurant = conn.execute(
+        "SELECT * FROM restaurants WHERE id = ?",
+        (id,)
+    ).fetchone()
+
+    if restaurant:
+        delete_uploaded_file(restaurant["image_filename"])
+
+        conn.execute(
+            "DELETE FROM restaurants WHERE id = ?",
+            (id,)
+        )
+        conn.commit()
+
+    conn.close()
+    return redirect(url_for("restaurants_list"))
+
+
 @app.route("/add_recipe", methods=["GET", "POST"])
 def add_recipe():
     if request.method == "POST":
         name = request.form.get("name", "").strip()
-
-        # This keeps pasted recipe text as-is in the database
         description = request.form.get("description", "").strip()
 
         rating_value = request.form.get("rating", "").strip()
@@ -344,6 +508,32 @@ def recipe_detail(id):
     conn.close()
 
     return render_template("recipe_detail.html", recipe=recipe, photos=photos)
+
+
+@app.route("/delete_recipe/<int:id>", methods=["POST"])
+def delete_recipe(id):
+    conn = get_db_connection()
+
+    photos = conn.execute(
+        "SELECT * FROM recipe_photos WHERE recipe_id = ?",
+        (id,)
+    ).fetchall()
+
+    for photo in photos:
+        delete_uploaded_file(photo["filename"])
+
+    conn.execute(
+        "DELETE FROM recipe_photos WHERE recipe_id = ?",
+        (id,)
+    )
+    conn.execute(
+        "DELETE FROM recipes WHERE id = ?",
+        (id,)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("recipes_list"))
 
 
 if __name__ == "__main__":

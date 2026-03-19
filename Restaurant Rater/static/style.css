@@ -172,6 +172,20 @@ form input[type="file"] {
     border-radius: 14px;
 }
 
+/* Text boxes */
+.restaurant-notes-box,
+.recipe-preview,
+.recipe-text-box {
+    background: #f6fbff;
+    border: 1px solid #9fc4eb;
+    border-radius: 10px;
+    padding: 12px;
+    color: #0a1f33;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    margin-top: 8px;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
     .page-wrap {
@@ -220,83 +234,7 @@ form input[type="file"] {
     }
 }
 
-/* ===== MOBILE HEADER FIX (ADD ONLY THIS) ===== */
-
-.top-nav {
-    margin-top: 14px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-@media (max-width: 768px) {
-    .header-inner {
-        text-align: center;
-    }
-
-    .top-nav {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        width: 100%;
-    }
-
-    .top-nav .button {
-        width: 100%;
-        text-align: center;
-        padding: 12px;
-        margin: 0;
-    }
-}
-
-@media (max-width: 480px) {
-    .top-nav {
-        grid-template-columns: 1fr;
-    }
-}
-/* ===== MOBILE HEADER FIX ===== */
-
-.top-nav {
-    margin-top: 14px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-@media (max-width: 768px) {
-    .header-inner {
-        text-align: center;
-    }
-
-    .top-nav {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        width: 100%;
-    }
-
-    .top-nav .button {
-        width: 100%;
-        text-align: center;
-        padding: 12px;
-        margin: 0;
-        box-sizing: border-box;
-    }
-}
-
-@media (max-width: 480px) {
-    .top-nav {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* ===== FORCED MOBILE HEADER FIX ===== */
-
-.site-subtitle {
-    margin: 5px 0 0 0;
-    color: #0f2a44;
-}
-
+/* Mobile header fix */
 .top-nav {
     margin-top: 14px !important;
     display: flex !important;
@@ -307,6 +245,11 @@ form input[type="file"] {
 
 .top-nav .button {
     text-decoration: none !important;
+}
+
+.site-subtitle {
+    margin: 5px 0 0 0;
+    color: #0f2a44;
 }
 
 @media screen and (max-width: 900px) {

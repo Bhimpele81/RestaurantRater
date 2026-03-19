@@ -4,13 +4,13 @@
 <section class="content-section">
     <div class="form-card">
         <h2>Add Restaurant</h2>
-        <p>Save where you went, who was there, what you ate, and how much you liked it.</p>
+        <p>Save a restaurant, what you tried, and where it was.</p>
 
         <form method="POST" enctype="multipart/form-data">
             <label for="name">Restaurant Name</label>
             <input type="text" id="name" name="name" required>
 
-            <label for="category">Cuisine Style</label>
+            <label for="category">Cuisine</label>
             <select id="category" name="category" required>
                 <option value="">Select a cuisine</option>
                 {% for cuisine in cuisines %}
@@ -18,30 +18,50 @@
                 {% endfor %}
             </select>
 
-            <label for="visit_date">Date of Visit</label>
-            <input type="date" id="visit_date" name="visit_date">
+            <label for="city">City</label>
+            <input
+                type="text"
+                id="city"
+                name="city"
+                placeholder="Philadelphia"
+                required
+            >
+
+            <label for="state">State</label>
+            <input
+                type="text"
+                id="state"
+                name="state"
+                placeholder="PA"
+                required
+            >
+
+            <label for="description">Notes</label>
+            <textarea
+                id="description"
+                name="description"
+                rows="5"
+                placeholder="What made this place memorable?"
+            ></textarea>
+
+            <label for="dishes_tried">Dishes Tried</label>
+            <input
+                type="text"
+                id="dishes_tried"
+                name="dishes_tried"
+                placeholder="Pizza, salad, wings"
+            >
 
             <label for="attendees">Who Was There</label>
             <input
                 type="text"
                 id="attendees"
                 name="attendees"
-                placeholder="Mom, Dad, Emma, Jake"
+                placeholder="Family, friends, coworkers"
             >
 
-            <label for="dishes_tried">Dishes Tried</label>
-            <textarea
-                id="dishes_tried"
-                name="dishes_tried"
-                placeholder="Tacos, guacamole, churros"
-            ></textarea>
-
-            <label for="description">Notes</label>
-            <textarea
-                id="description"
-                name="description"
-                placeholder="What stood out? Would you go back?"
-            ></textarea>
+            <label for="visit_date">Visit Date</label>
+            <input type="date" id="visit_date" name="visit_date">
 
             <label for="rating">Rating (1.0 to 10.0)</label>
             <input

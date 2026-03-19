@@ -13,13 +13,33 @@
     </form>
 
     {% if recipes %}
-        {% for recipe in recipes %}
-            <div class="card">
-                <h3>{{ recipe.name }}</h3>
-                <p>{{ recipe.rating }}/10</p>
-                <a class="button" href="{{ url_for('recipe_detail', id=recipe.id) }}">View Recipe</a>
-            </div>
-        {% endfor %}
+        <div class="card-grid">
+            {% for recipe in recipes %}
+                <div class="card">
+                    {% if recipe["cover_photo"] %}
+                        <img
+                            src="{{ url_for('static', filename='uploads/' + recipe['cover_photo']) }}"
+                            alt="{{ recipe['name'] }}"
+                            class="recipe-card-image"
+                        >
+                    {% endif %}
+
+                    <h3>{{ recipe["name"] }}</h3>
+
+                    {% if recipe["rating"] is not none %}
+                        <p><span class="rating-badge">{{ recipe["rating"] }}/10</span></p>
+                    {% endif %}
+
+                    {% if recipe["description"] %}
+                        <div class="recipe-preview">
+                            {{ recipe["description"][:220] }}{% if recipe["description"]|length > 220 %}...{% endif %}
+                        </div>
+                    {% endif %}
+
+                    <a class="button" href="{{ url_for('recipe_detail', id=recipe['id']) }}">View Recipe</a>
+                </div>
+            {% endfor %}
+        </div>
     {% else %}
         <div class="empty-state">No recipes found.</div>
     {% endif %}

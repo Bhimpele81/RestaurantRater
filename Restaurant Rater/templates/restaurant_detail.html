@@ -2,68 +2,64 @@
 
 {% block content %}
 <section class="content-section">
-    <div class="form-card">
-        <h2>Add Restaurant</h2>
-        <p class="muted-text">
-            Save where you went, who was there, what you ate, and how much you liked it.
-        </p>
+    <div class="detail-card">
+        {% if restaurant %}
+            <h2>{{ restaurant.name }}</h2>
 
-        <form method="POST" enctype="multipart/form-data">
-            <label for="name">Restaurant Name</label>
-            <input type="text" id="name" name="name" required>
+            {% if restaurant.image_filename %}
+                <div style="margin: 18px 0;">
+                    <img
+                        src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
+                        alt="{{ restaurant.name }}"
+                        class="detail-image"
+                    >
+                </div>
+            {% endif %}
 
-            <label for="category">Cuisine Style</label>
-            <select id="category" name="category" required>
-                <option value="">Select a cuisine</option>
-                {% for cuisine in cuisines %}
-                    <option value="{{ cuisine }}">{{ cuisine }}</option>
-                {% endfor %}
-            </select>
+            {% if restaurant.rating is not none %}
+                <p>
+                    <span class="rating-badge">{{ restaurant.rating }}/10</span>
+                </p>
+            {% endif %}
 
-            <label for="visit_date">Date of Visit</label>
-            <input type="date" id="visit_date" name="visit_date">
+            {% if restaurant.category %}
+                <p><strong>Cuisine:</strong> {{ restaurant.category }}</p>
+            {% endif %}
 
-            <label for="attendees">Who Was There</label>
-            <input
-                type="text"
-                id="attendees"
-                name="attendees"
-                placeholder="Mom, Dad, Emma, Jake"
-            >
+            {% if restaurant.city or restaurant.state %}
+                <p>
+                    <strong>Location:</strong>
+                    {{ restaurant.city }}{% if restaurant.city and restaurant.state %}, {% endif %}{{ restaurant.state }}
+                </p>
+            {% endif %}
 
-            <label for="dishes_tried">Dishes Tried</label>
-            <textarea
-                id="dishes_tried"
-                name="dishes_tried"
-                rows="3"
-                placeholder="Tacos, guacamole, churros"
-            ></textarea>
+            {% if restaurant.visit_date %}
+                <p><strong>Visit Date:</strong> {{ restaurant.visit_date }}</p>
+            {% endif %}
 
-            <label for="description">Notes</label>
-            <textarea
-                id="description"
-                name="description"
-                rows="4"
-                placeholder="What stood out? Would you go back?"
-            ></textarea>
+            {% if restaurant.attendees %}
+                <p><strong>Who Was There:</strong> {{ restaurant.attendees }}</p>
+            {% endif %}
 
-            <label for="rating">Rating (1.0 to 10.0)</label>
-            <input
-                type="number"
-                id="rating"
-                name="rating"
-                min="1"
-                max="10"
-                step="0.1"
-                placeholder="8.5"
-                required
-            >
+            {% if restaurant.dishes_tried %}
+                <p><strong>Dishes Tried:</strong> {{ restaurant.dishes_tried }}</p>
+            {% endif %}
 
-            <label for="image">Upload Photo</label>
-            <input type="file" id="image" name="image" accept="image/*">
+            {% if restaurant.description %}
+                <div style="margin-top: 18px;">
+                    <h3>Notes</h3>
+                    <div class="restaurant-notes-box">{{ restaurant.description }}</div>
+                </div>
+            {% endif %}
 
-            <button type="submit">Save Restaurant</button>
-        </form>
+            <div style="margin-top: 20px;">
+                <a class="button" href="{{ url_for('restaurants_list') }}">Back to Restaurants</a>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                Restaurant not found.
+            </div>
+        {% endif %}
     </div>
 </section>
 {% endblock %}
