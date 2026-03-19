@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <div class="hero-text">
+        <span class="eyebrow">Family Food Journal</span>
+        <h2>Save the restaurants and recipes your family actually loves.</h2>
+        <p>
+            Keep track of the places you've tried, rate your favorites, and save recipe photos
+            all in one beautiful, simple space.
+        </p>
+
+        <div class="hero-actions">
+            <a class="button button-primary" href="{{ url_for('add_restaurant') }}">Add Restaurant</a>
+            <a class="button button-secondary" href="{{ url_for('add_recipe') }}">Add Recipe</a>
+        </div>
+    </div>
+
+    <div class="hero-panel">
+        <div class="mini-stat-card">
+            <p class="mini-stat-label">Restaurants Saved</p>
+            <h3>{{ restaurants|length }}</h3>
+        </div>
+        <div class="mini-stat-card">
+            <p class="mini-stat-label">Recipes Saved</p>
+            <h3>{{ recipes|length }}</h3>
+        </div>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Recent Highlights</p>
+            <h3>A recent favorite from your food journal</h3>
+        </div>
+    </div>
+
+    {% if highlight %}
+        <div class="detail-card">
+            {% if highlight.image_filename %}
+                <img
+                    src="{{ url_for('static', filename='uploads/' + highlight.image_filename) }}"
+                    alt="{{ highlight.name }}"
+                    class="detail-image"
+                >
+            {% endif %}
+
+            <div class="card-top-row">
+                <h4>{{ highlight.name }}</h4>
+                {% if highlight.type == "restaurant" %}
+                    <span class="rating-pill">{{ "%.1f"|format(highlight.rating) }}/10</span>
+                {% else %}
+                    <span class="rating-pill">{{ highlight.rating }}/5</span>
+                {% endif %}
+            </div>
+
+            {% if highlight.type == "restaurant" %}
+                <p class="category-pill">{{ highlight.category }}</p>
+
+                {% if highlight.dishes_tried %}
+                    <p class="card-description"><strong>Dishes Tried:</strong> {{ highlight.dishes_tried }}</p>
+                {% endif %}
+
+                <p class="card-description">
+                    {{ highlight.description if highlight.description else "A saved restaurant entry from your family collection." }}
+                </p>
+
+                <a class="text-link strong-link" href="{{ url_for('restaurant_detail', restaurant_id=highlight.id) }}">
+                    View restaurant
+                </a>
+            {% else %}
+                <p class="category-pill">Recipe</p>
+                <p class="card-description">
+                    {{ highlight.description if highlight.description else "A saved recipe from your family collection." }}
+                </p>
+                <a class="text-link strong-link" href="{{ url_for('recipe_detail', recipe_id=highlight.id) }}">
+                    View recipe
+                </a>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h4>No highlights yet</h4>
+            <p>Add a restaurant or recipe with a photo and it can appear here.</p>
+        </div>
+    {% endif %}
+</section>
+
+<section class="content-section">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Restaurants</p>
+            <h3>Places we’ve tried</h3>
+        </div>
+        <a class="text-link" href="{{ url_for('add_restaurant') }}">+ Add new</a>
+    </div>
+
+    {% if restaurants %}
+        <div class="modern-card-grid">
+            {% for restaurant in restaurants %}
+                <article class="modern-card">
+                    {% if restaurant.image_filename %}
+                        <img
+                            src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
+                            alt="{{ restaurant.name }}"
+                            class="card-image"
+                        >
+                    {% else %}
+                        <div class="image-placeholder">No Photo Yet</div>
+                    {% endif %}
+
+                    <div class="card-content">
+                        <div class="card-top-row">
+                            <h4>{{ restaurant.name }}</h4>
+                            <span class="rating-pill">{{ "%.1f"|format(restaurant.rating) }}/10</span>
+                        </div>
+
+                        <p class="category-pill">{{ restaurant.category }}</p>
+
+                        {% if restaurant.dishes_tried %}
+                            <p class="card-description"><strong>Dishes Tried:</strong> {{ restaurant.dishes_tried }}</p>
+                        {% endif %}
+
+                        <p class="card-description">
+                            {{ restaurant.description[:120] if restaurant.description else "No description yet." }}{% if restaurant.description and restaurant.description|length > 120 %}...{% endif %}
+                        </p>
+
+                        <a class="text-link strong-link" href="{{ url_for('restaurant_detail', restaurant_id=restaurant.id) }}">
+                            View details
+                        </a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h4>No restaurants yet</h4>
+            <p>Start your family food journal by adding the first restaurant.</p>
+        </div>
+    {% endif %}
+</section>
+
+<section class="content-section">
+    <div class="section-header">
+        <div>
+            <p class="section-kicker">Recipes</p>
+            <h3>Recipes we want to remember</h3>
+        </div>
+        <a class="text-link" href="{{ url_for('add_recipe') }}">+ Add new</a>
+    </div>
+
+    {% if recipes %}
+        <div class="modern-card-grid">
+            {% for recipe in recipes %}
+                <article class="modern-card">
+                    {% if recipe.image_filename %}
+                        <img
+                            src="{{ url_for('static', filename='uploads/' + recipe.image_filename) }}"
+                            alt="{{ recipe.name }}"
+                            class="card-image"
+                        >
+                    {% else %}
+                        <div class="image-placeholder">No Photo Yet</div>
+                    {% endif %}
+
+                    <div class="card-content">
+                        <div class="card-top-row">
+                            <h4>{{ recipe.name }}</h4>
+                            <span class="rating-pill">{{ recipe.rating }}/5</span>
+                        </div>
+
+                        <p class="category-pill">Recipe</p>
+
+                        <p class="card-description">
+                            {{ recipe.description[:120] if recipe.description else "No description yet." }}{% if recipe.description and recipe.description|length > 120 %}...{% endif %}
+                        </p>
+
+                        <a class="text-link strong-link" href="{{ url_for('recipe_detail', recipe_id=recipe.id) }}">
+                            View details
+                        </a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h4>No recipes yet</h4>
+            <p>Add a favorite recipe so your family can save it here.</p>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

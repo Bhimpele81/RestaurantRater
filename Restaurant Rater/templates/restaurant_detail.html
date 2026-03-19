@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="content-section">
+    <div class="detail-card">
+        <p class="section-kicker">Restaurant Details</p>
+        <h2>{{ restaurant.name }}</h2>
+
+        {% if restaurant.image_filename %}
+            <img
+                class="detail-image"
+                src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
+                alt="{{ restaurant.name }}"
+            >
+        {% endif %}
+
+        <div class="card-top-row">
+            <p class="category-pill">{{ restaurant.category }}</p>
+            <span class="rating-pill">{{ "%.1f"|format(restaurant.rating) }}/10</span>
+        </div>
+
+        <p><strong>Dishes Tried:</strong>
+            {% if restaurant.dishes_tried %}
+                {{ restaurant.dishes_tried }}
+            {% else %}
+                None listed yet.
+            {% endif %}
+        </p>
+
+        <p><strong>Notes:</strong>
+            {% if restaurant.description %}
+                {{ restaurant.description }}
+            {% else %}
+                No notes added yet.
+            {% endif %}
+        </p>
+
+        <a class="button button-primary" href="{{ url_for('index') }}">Back to Home</a>
+    </div>
+</section>
+{% endblock %}
