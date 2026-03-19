@@ -3,7 +3,7 @@ import sqlite3
 from flask import Flask, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder="Templates")
 app.secret_key = "your_secret_key_here"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -53,6 +53,9 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+
+init_db()
 
 
 @app.route("/")
@@ -169,5 +172,4 @@ def recipe_detail(recipe_id):
 
 
 if __name__ == "__main__":
-    init_db()
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
