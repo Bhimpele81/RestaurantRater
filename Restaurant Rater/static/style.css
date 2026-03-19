@@ -219,3 +219,124 @@ form input[type="file"] {
         font-size: 16px;
     }
 }
+
+/* ===== MOBILE HEADER FIX (ADD ONLY THIS) ===== */
+
+.top-nav {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .header-inner {
+        text-align: center;
+    }
+
+    .top-nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .top-nav .button {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+        margin: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-nav {
+        grid-template-columns: 1fr;
+    }
+}
+/* ===== MOBILE HEADER FIX ===== */
+
+.top-nav {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    .header-inner {
+        text-align: center;
+    }
+
+    .top-nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .top-nav .button {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+        margin: 0;
+        box-sizing: border-box;
+    }
+}
+
+@media (max-width: 480px) {
+    .top-nav {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== FORCED MOBILE HEADER FIX ===== */
+
+.site-subtitle {
+    margin: 5px 0 0 0;
+    color: #0f2a44;
+}
+
+.top-nav {
+    margin-top: 14px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    width: 100% !important;
+}
+
+.top-nav .button {
+    text-decoration: none !important;
+}
+
+@media screen and (max-width: 900px) {
+    .header-inner {
+        text-align: center !important;
+    }
+
+    .header-inner h1 {
+        margin-bottom: 6px !important;
+    }
+
+    .top-nav {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+        width: 100% !important;
+    }
+
+    .top-nav .button {
+        display: block !important;
+        width: 100% !important;
+        text-align: center !important;
+        padding: 12px 10px !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+}
+
+@media screen and (max-width: 520px) {
+    .top-nav {
+        grid-template-columns: 1fr !important;
+    }
+}
