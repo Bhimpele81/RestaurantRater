@@ -4,10 +4,56 @@
 <section class="hero-card">
     <h2>Restaurant Rater</h2>
     <p>Save restaurants and recipes your family loves.</p>
+
     <div style="margin-top: 18px;">
         <a class="button" href="{{ url_for('add_restaurant') }}">Add Restaurant</a>
         <a class="button" href="{{ url_for('add_recipe') }}">Add Recipe</a>
     </div>
+
+    <div style="margin-top: 24px;">
+        <img
+            src="{{ url_for('static', filename='uploads/homepage-food.jpg') }}"
+            alt="Homepage food photo"
+            class="detail-image"
+        >
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="section-title">
+        <h2>Recent Highlights</h2>
+        <p class="muted-text">Latest favorites with photos</p>
+    </div>
+
+    {% if recent_highlights %}
+        <div class="card-grid">
+            {% for item in recent_highlights %}
+                <div class="card">
+                    {% if item.image_filename %}
+                        <img
+                            src="{{ url_for('static', filename='uploads/' + item.image_filename) }}"
+                            alt="{{ item.name }}"
+                        >
+                    {% endif %}
+
+                    <h3>{{ item.name }}</h3>
+                    <div class="rating-badge">{{ item.rating }}/10</div>
+
+                    {% if item.description %}
+                        <p>{{ item.description }}</p>
+                    {% endif %}
+
+                    {% if item.type == "recipe" %}
+                        <a class="button" href="{{ url_for('recipe_detail', id=item.id) }}">View Recipe</a>
+                    {% else %}
+                        <a class="button" href="{{ url_for('restaurant_detail', id=item.id) }}">View Details</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">No highlights yet.</div>
+    {% endif %}
 </section>
 
 <section class="content-section">
@@ -23,6 +69,18 @@
                 <div class="rating-badge">{{ restaurant.rating }}/10</div>
 
                 <p><strong>Cuisine:</strong> {{ restaurant.category }}</p>
+
+                {% if restaurant.visit_date %}
+                    <p><strong>Date:</strong> {{ restaurant.visit_date }}</p>
+                {% endif %}
+
+                {% if restaurant.attendees %}
+                    <p><strong>Who:</strong> {{ restaurant.attendees }}</p>
+                {% endif %}
+
+                {% if restaurant.dishes_tried %}
+                    <p><strong>Dishes:</strong> {{ restaurant.dishes_tried }}</p>
+                {% endif %}
 
                 <a class="button" href="{{ url_for('restaurant_detail', id=restaurant.id) }}">
                     View Details
@@ -42,7 +100,10 @@
         {% for recipe in recipes %}
             <div class="card">
                 {% if recipe.cover_photo %}
-                    <img src="{{ url_for('static', filename='uploads/' + recipe.cover_photo) }}" alt="{{ recipe.name }}">
+                    <img
+                        src="{{ url_for('static', filename='uploads/' + recipe.cover_photo) }}"
+                        alt="{{ recipe.name }}"
+                    >
                 {% endif %}
 
                 <h3>{{ recipe.name }}</h3>
