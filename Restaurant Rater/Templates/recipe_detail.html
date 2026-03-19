@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="detail-card">
+    <h2>{{ recipe.name }}</h2>
+
+    {% if recipe.image_filename %}
+        <img class="detail-image" src="{{ url_for('static', filename='uploads/' + recipe.image_filename) }}" alt="{{ recipe.name }}">
+    {% endif %}
+
+    <p><strong>Rating:</strong> {{ recipe.rating }}/5</p>
+    <p><strong>Description:</strong> {{ recipe.description }}</p>
+
+    <a class="button" href="{{ url_for('index') }}">Back to Home</a>
+</div>
+{% endblock %}
