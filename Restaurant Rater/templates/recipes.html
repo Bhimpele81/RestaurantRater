@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="content-section">
+    <div class="section-title">
+        <h2>Recipes</h2>
+        <p class="muted-text">Browse and search past recipe posts</p>
+    </div>
+
+    <form method="GET" action="{{ url_for('recipes_list') }}" style="margin-bottom: 24px;">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search recipes">
+        <button type="submit" class="button">Search</button>
+    </form>
+
+    {% if recipes %}
+        {% for recipe in recipes %}
+            <div class="card">
+                <h3>{{ recipe.name }}</h3>
+                <p>{{ recipe.rating }}/10</p>
+                <a class="button" href="{{ url_for('recipe_detail', id=recipe.id) }}">View Recipe</a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">No recipes found.</div>
+    {% endif %}
+</section>
+{% endblock %}

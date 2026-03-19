@@ -8,7 +8,7 @@ body {
 /* Header */
 .site-header {
     background: #dbeafe;
-    padding: 20px;
+    padding: 16px 20px;
     border-bottom: 1px solid #b6d4f7;
 }
 
@@ -17,12 +17,15 @@ body {
     margin: 0 auto;
 }
 
+.header-inner h1 {
+    margin: 0;
+}
+
 .header-inner h1 a {
     color: #0a1f33;
     text-decoration: none;
 }
 
-/* Subheading */
 .header-inner p {
     margin: 5px 0 0 0;
     color: #0f2a44;
@@ -32,7 +35,7 @@ body {
 .page-wrap {
     max-width: 1000px;
     margin: 20px auto;
-    padding: 0 15px;
+    padding: 0 15px 30px 15px;
 }
 
 /* Hero */
@@ -40,7 +43,7 @@ body {
     background: #dbeafe;
     color: #0a1f33;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 14px;
 }
 
 /* Buttons */
@@ -48,15 +51,32 @@ body {
     display: inline-block;
     background: #2f80ed;
     color: white;
-    padding: 10px 16px;
-    margin: 5px;
-    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 5px 5px 0 0;
+    border-radius: 8px;
     text-decoration: none;
+    box-sizing: border-box;
+}
+
+button {
+    background: #2f80ed;
+    color: white;
+    padding: 14px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+    box-sizing: border-box;
 }
 
 /* Sections */
 .content-section {
-    margin-top: 30px;
+    margin-top: 24px;
+}
+
+.section-title h2 {
+    margin-bottom: 5px;
 }
 
 .muted-text {
@@ -74,16 +94,15 @@ body {
     background: #dbeafe;
     color: #0a1f33;
     padding: 15px;
-    border-radius: 10px;
+    border-radius: 14px;
 }
 
 .card img {
     width: 100%;
-    border-radius: 8px;
+    border-radius: 10px;
     margin-bottom: 10px;
 }
 
-/* Rating */
 .rating-badge {
     background: #2f80ed;
     color: white;
@@ -92,36 +111,111 @@ body {
     display: inline-block;
 }
 
-/* Images */
 .detail-image {
     width: 100%;
     border-radius: 10px;
 }
 
-/* 🔥 MOBILE FIX */
-@media (max-width: 768px) {
+/* Forms */
+.form-card,
+.detail-card {
+    background: #dbeafe;
+    color: #0a1f33;
+    padding: 20px;
+    border-radius: 14px;
+}
 
-    /* Buttons stay inside container */
+.form-card h2,
+.detail-card h2 {
+    margin-top: 0;
+}
+
+form {
+    margin-top: 10px;
+}
+
+form label {
+    display: block;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #0f2a44;
+}
+
+form input,
+form textarea,
+form select {
+    width: 100%;
+    padding: 14px 12px;
+    border: 1px solid #9fc4eb;
+    border-radius: 10px;
+    box-sizing: border-box;
+    font-size: 16px;
+    background: #f6fbff;
+    color: #0a1f33;
+}
+
+form textarea {
+    min-height: 110px;
+    resize: vertical;
+}
+
+form input[type="file"] {
+    padding: 10px;
+    background: white;
+}
+
+.empty-state {
+    background: #dbeafe;
+    color: #0a1f33;
+    padding: 15px;
+    border-radius: 14px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .page-wrap {
+        padding: 0 12px 24px 12px;
+    }
+
+    .hero-card {
+        padding: 16px;
+    }
+
     .button {
         display: block;
         width: 100%;
-        max-width: 100%;
-        box-sizing: border-box;
         text-align: center;
+        margin-right: 0;
     }
 
-    /* Stack images */
-    .hero-card div[style*="display: flex"] {
-        flex-direction: column !important;
-    }
-
-    /* Cards go single column */
     .card-grid {
         grid-template-columns: 1fr;
     }
 
-    /* Prevent overflow */
-    .page-wrap {
-        padding: 0 10px;
+    .hero-card div[style*="display: flex"] {
+        flex-direction: column !important;
+    }
+
+    .hero-card div[style*="width: 50%"] {
+        width: 100% !important;
+    }
+
+    .hero-card img {
+        height: auto !important;
+        max-height: 280px;
+    }
+
+    .form-card,
+    .detail-card,
+    .card {
+        padding: 16px;
+    }
+
+    form input,
+    form textarea,
+    form select,
+    button {
+        font-size: 16px;
     }
 }

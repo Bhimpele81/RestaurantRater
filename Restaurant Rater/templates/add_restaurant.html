@@ -4,11 +4,9 @@
 <section class="content-section">
     <div class="form-card">
         <h2>Add Restaurant</h2>
-        <p class="muted-text">
-            Save where you went, who was there, what you ate, and how much you liked it.
-        </p>
+        <p>Save where you went, who was there, what you ate, and how much you liked it.</p>
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <label for="name">Restaurant Name</label>
             <input type="text" id="name" name="name" required>
 
@@ -28,14 +26,13 @@
                 type="text"
                 id="attendees"
                 name="attendees"
-                placeholder="Mom, Dad, Ali"
+                placeholder="Mom, Dad, Emma, Jake"
             >
 
             <label for="dishes_tried">Dishes Tried</label>
             <textarea
                 id="dishes_tried"
                 name="dishes_tried"
-                rows="3"
                 placeholder="Tacos, guacamole, churros"
             ></textarea>
 
@@ -43,7 +40,6 @@
             <textarea
                 id="description"
                 name="description"
-                rows="4"
                 placeholder="What stood out? Would you go back?"
             ></textarea>
 
@@ -59,7 +55,12 @@
                 required
             >
 
-            <button type="submit">Save Restaurant</button>
+            <label for="image">Upload Photo</label>
+            <input type="file" id="image" name="image" accept="image/*">
+
+            <div style="margin-top: 18px;">
+                <button type="submit">Save Restaurant</button>
+            </div>
         </form>
     </div>
 </section>

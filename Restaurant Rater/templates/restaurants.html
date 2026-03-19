@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="content-section">
+    <div class="section-title">
+        <h2>Restaurants</h2>
+        <p class="muted-text">Browse and search past restaurant posts</p>
+    </div>
+
+    <form method="GET" action="{{ url_for('restaurants_list') }}" style="margin-bottom: 24px;">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search restaurants">
+        <button type="submit" class="button">Search</button>
+    </form>
+
+    {% if restaurants %}
+        {% for restaurant in restaurants %}
+            <div class="card">
+                <h3>{{ restaurant.name }}</h3>
+                <p>{{ restaurant.rating }}/10</p>
+                <a class="button" href="{{ url_for('restaurant_detail', id=restaurant.id) }}">View Details</a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">No restaurants found.</div>
+    {% endif %}
+</section>
+{% endblock %}
