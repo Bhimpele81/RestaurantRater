@@ -17,9 +17,7 @@
             {% endif %}
 
             {% if restaurant.rating is not none %}
-                <p>
-                    <span class="rating-badge">{{ restaurant.rating }}/10</span>
-                </p>
+                <p><span class="rating-badge">{{ restaurant.rating }}/10</span></p>
             {% endif %}
 
             {% if restaurant.category %}
@@ -55,6 +53,10 @@
             <div style="margin-top: 20px;">
                 <a class="button" href="{{ url_for('restaurants_list') }}">Back to Restaurants</a>
             </div>
+
+            <form method="POST" action="{{ url_for('delete_restaurant', id=restaurant.id) }}" style="margin-top: 12px;">
+                <button type="submit" onclick="return confirm('Delete this restaurant?');">Delete Restaurant</button>
+            </form>
         {% else %}
             <div class="empty-state">
                 Restaurant not found.

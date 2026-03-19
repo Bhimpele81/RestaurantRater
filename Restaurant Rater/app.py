@@ -447,11 +447,7 @@ def delete_restaurant(id):
 
     if restaurant:
         delete_uploaded_file(restaurant["image_filename"])
-
-        conn.execute(
-            "DELETE FROM restaurants WHERE id = ?",
-            (id,)
-        )
+        conn.execute("DELETE FROM restaurants WHERE id = ?", (id,))
         conn.commit()
 
     conn.close()
@@ -522,14 +518,8 @@ def delete_recipe(id):
     for photo in photos:
         delete_uploaded_file(photo["filename"])
 
-    conn.execute(
-        "DELETE FROM recipe_photos WHERE recipe_id = ?",
-        (id,)
-    )
-    conn.execute(
-        "DELETE FROM recipes WHERE id = ?",
-        (id,)
-    )
+    conn.execute("DELETE FROM recipe_photos WHERE recipe_id = ?", (id,))
+    conn.execute("DELETE FROM recipes WHERE id = ?", (id,))
     conn.commit()
     conn.close()
 
