@@ -22,6 +22,12 @@ body {
     text-decoration: none;
 }
 
+/* Subheading */
+.header-inner p {
+    margin: 5px 0 0 0;
+    color: #0f2a44;
+}
+
 /* Layout */
 .page-wrap {
     max-width: 1000px;
@@ -92,28 +98,30 @@ body {
     border-radius: 10px;
 }
 
-/* 🔥 MOBILE FIXES */
+/* 🔥 MOBILE FIX */
 @media (max-width: 768px) {
 
-    /* Stack buttons nicely */
+    /* Buttons stay inside container */
     .button {
         display: block;
         width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
         text-align: center;
     }
 
-    /* Stack images instead of side-by-side */
+    /* Stack images */
     .hero-card div[style*="display: flex"] {
         flex-direction: column !important;
     }
 
-    /* Cards go 1 per row */
+    /* Cards go single column */
     .card-grid {
         grid-template-columns: 1fr;
     }
 
-    /* Reduce image height */
-    .hero-card img {
-        height: auto !important;
+    /* Prevent overflow */
+    .page-wrap {
+        padding: 0 10px;
     }
 }
