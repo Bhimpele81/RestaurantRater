@@ -3,7 +3,7 @@
 {% block content %}
 <section class="hero-card">
     <h2>Restaurant Rater</h2>
-    <p>Save restaurants and recipes your family loves.</p>
+    <p>Himpele Family Favorites!</p>
 
     <div style="margin-top: 18px;">
         <a class="button" href="{{ url_for('add_restaurant') }}">Add Restaurant</a>
@@ -11,11 +11,8 @@
     </div>
 
     <div style="margin-top: 24px;">
-        <img
-            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836"
-            alt="Homepage food photo"
-            class="detail-image"
-        >
+        <img src="https://images.unsplash.com/photo-1504674900247-0877df9cc836" alt="Homepage food photo"
+            class="detail-image">
     </div>
 </section>
 
@@ -26,33 +23,30 @@
     </div>
 
     {% if recent_highlights %}
-        <div class="card-grid">
-            {% for item in recent_highlights %}
-                <div class="card">
-                    {% if item.image_filename %}
-                        <img
-                            src="{{ url_for('static', filename='uploads/' + item.image_filename) }}"
-                            alt="{{ item.name }}"
-                        >
-                    {% endif %}
+    <div class="card-grid">
+        {% for item in recent_highlights %}
+        <div class="card">
+            {% if item.image_filename %}
+            <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" alt="{{ item.name }}">
+            {% endif %}
 
-                    <h3>{{ item.name }}</h3>
-                    <div class="rating-badge">{{ item.rating }}/10</div>
+            <h3>{{ item.name }}</h3>
+            <div class="rating-badge">{{ item.rating }}/10</div>
 
-                    {% if item.description %}
-                        <p>{{ item.description }}</p>
-                    {% endif %}
+            {% if item.description %}
+            <p>{{ item.description }}</p>
+            {% endif %}
 
-                    {% if item.type == "recipe" %}
-                        <a class="button" href="{{ url_for('recipe_detail', id=item.id) }}">View Recipe</a>
-                    {% else %}
-                        <a class="button" href="{{ url_for('restaurant_detail', id=item.id) }}">View Details</a>
-                    {% endif %}
-                </div>
-            {% endfor %}
+            {% if item.type == "recipe" %}
+            <a class="button" href="{{ url_for('recipe_detail', id=item.id) }}">View Recipe</a>
+            {% else %}
+            <a class="button" href="{{ url_for('restaurant_detail', id=item.id) }}">View Details</a>
+            {% endif %}
         </div>
+        {% endfor %}
+    </div>
     {% else %}
-        <div class="empty-state">No highlights yet.</div>
+    <div class="empty-state">No highlights yet.</div>
     {% endif %}
 </section>
 
@@ -64,28 +58,28 @@
 
     <div class="card-grid">
         {% for restaurant in restaurants %}
-            <div class="card">
-                <h3>{{ restaurant.name }}</h3>
-                <div class="rating-badge">{{ restaurant.rating }}/10</div>
+        <div class="card">
+            <h3>{{ restaurant.name }}</h3>
+            <div class="rating-badge">{{ restaurant.rating }}/10</div>
 
-                <p><strong>Cuisine:</strong> {{ restaurant.category }}</p>
+            <p><strong>Cuisine:</strong> {{ restaurant.category }}</p>
 
-                {% if restaurant.visit_date %}
-                    <p><strong>Date:</strong> {{ restaurant.visit_date }}</p>
-                {% endif %}
+            {% if restaurant.visit_date %}
+            <p><strong>Date:</strong> {{ restaurant.visit_date }}</p>
+            {% endif %}
 
-                {% if restaurant.attendees %}
-                    <p><strong>Who:</strong> {{ restaurant.attendees }}</p>
-                {% endif %}
+            {% if restaurant.attendees %}
+            <p><strong>Who:</strong> {{ restaurant.attendees }}</p>
+            {% endif %}
 
-                {% if restaurant.dishes_tried %}
-                    <p><strong>Dishes:</strong> {{ restaurant.dishes_tried }}</p>
-                {% endif %}
+            {% if restaurant.dishes_tried %}
+            <p><strong>Dishes:</strong> {{ restaurant.dishes_tried }}</p>
+            {% endif %}
 
-                <a class="button" href="{{ url_for('restaurant_detail', id=restaurant.id) }}">
-                    View Details
-                </a>
-            </div>
+            <a class="button" href="{{ url_for('restaurant_detail', id=restaurant.id) }}">
+                View Details
+            </a>
+        </div>
         {% endfor %}
     </div>
 </section>
@@ -98,25 +92,22 @@
 
     <div class="card-grid">
         {% for recipe in recipes %}
-            <div class="card">
-                {% if recipe.cover_photo %}
-                    <img
-                        src="{{ url_for('static', filename='uploads/' + recipe.cover_photo) }}"
-                        alt="{{ recipe.name }}"
-                    >
-                {% endif %}
+        <div class="card">
+            {% if recipe.cover_photo %}
+            <img src="{{ url_for('static', filename='uploads/' + recipe.cover_photo) }}" alt="{{ recipe.name }}">
+            {% endif %}
 
-                <h3>{{ recipe.name }}</h3>
-                <div class="rating-badge">{{ recipe.rating }}/10</div>
+            <h3>{{ recipe.name }}</h3>
+            <div class="rating-badge">{{ recipe.rating }}/10</div>
 
-                {% if recipe.description %}
-                    <p>{{ recipe.description }}</p>
-                {% endif %}
+            {% if recipe.description %}
+            <p>{{ recipe.description }}</p>
+            {% endif %}
 
-                <a class="button" href="{{ url_for('recipe_detail', id=recipe.id) }}">
-                    View Recipe
-                </a>
-            </div>
+            <a class="button" href="{{ url_for('recipe_detail', id=recipe.id) }}">
+                View Recipe
+            </a>
+        </div>
         {% endfor %}
     </div>
 </section>
