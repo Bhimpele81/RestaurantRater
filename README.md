@@ -1,10 +1,10 @@
-# 🍽️ Restaurant Rater
+# 🍽️ Dinner Rater
 
 A simple web app for tracking and rating restaurants and recipes with your family.
 
 ## 📌 Overview
 
-Restaurant Rater allows users to:
+Dinner Rater allows users to:
 - Save restaurants they’ve visited
 - Rate experiences (1–10 scale)
 - Track who attended and what dishes were tried
