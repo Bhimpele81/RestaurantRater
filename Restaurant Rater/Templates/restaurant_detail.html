@@ -1,44 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h2>{{ restaurant.name }}</h2>
+<div class="detail-card">
+    <h2>{{ restaurant.name }}</h2>
 
-  <p>
-    {% if restaurant.cuisine %}<strong>Cuisine:</strong> {{ restaurant.cuisine }}<br>{% endif %}
-    {% if restaurant.address %}<strong>Address:</strong> {{ restaurant.address }}{% endif %}
-  </p>
+    {% if restaurant.image_filename %}
+        <img class="detail-image" src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}" alt="{{ restaurant.name }}">
+    {% endif %}
 
-  <h3>Add review</h3>
-  <form method="post">
-    <label>
-      Rating (1–5)<br>
-      <select name="rating" required>
-        {% for n in range(1, 6) %}
-          <option value="{{ n }}">{{ n }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <br><br>
-    <label>
-      Notes<br>
-      <textarea name="notes" rows="4" cols="40"></textarea>
-    </label>
-    <br><br>
-    <button type="submit">Save review</button>
-  </form>
+    <p><strong>Category:</strong> {{ restaurant.category }}</p>
+    <p><strong>Rating:</strong> {{ restaurant.rating }}/5</p>
+    <p><strong>Description:</strong> {{ restaurant.description }}</p>
 
-  <h3>Reviews</h3>
-  {% if reviews %}
-    <ul>
-      {% for review in reviews %}
-        <li>
-          <strong>{{ review.rating }}/5</strong><br>
-          {% if review.notes %}{{ review.notes }}<br>{% endif %}
-          <small>{{ review.created_at }}</small>
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No reviews yet.</p>
-  {% endif %}
+    <a class="button" href="{{ url_for('index') }}">Back to Home</a>
+</div>
 {% endblock %}

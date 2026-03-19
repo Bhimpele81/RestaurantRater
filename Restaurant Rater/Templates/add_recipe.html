@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Add a Recipe</h2>
+
+<form method="POST" enctype="multipart/form-data" class="form-card">
+    <label for="name">Recipe Name</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="description">Description / Notes</label>
+    <textarea id="description" name="description" rows="4"></textarea>
+
+    <label for="rating">Rating (1-5)</label>
+    <input type="number" id="rating" name="rating" min="1" max="5" required>
+
+    <label for="image">Upload Photo</label>
+    <input type="file" id="image" name="image" accept="image/*">
+
+    <button type="submit">Save Recipe</button>
+</form>
+{% endblock %}

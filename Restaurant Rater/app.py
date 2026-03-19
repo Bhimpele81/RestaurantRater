@@ -1,121 +1,173 @@
+import os
 import sqlite3
-from datetime import datetime
-from pathlib import Path
+from flask import Flask, render_template, request, redirect, url_for, flash
+from werkzeug.utils import secure_filename
 
-from flask import Flask, g, render_template, request, redirect, url_for
+app = Flask(__name__)
+app.secret_key = "your_secret_key_here"
 
-BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "restaurants.db"
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DATABASE = os.path.join(BASE_DIR, "restaurant_rater.db")
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif"}
 
-app = Flask(__name__, template_folder="Templates")
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# ---------- Database helpers ----------
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def get_db():
-    if "db" not in g:
-        g.db = sqlite3.connect(DB_PATH)
-        g.db.row_factory = sqlite3.Row
-    return g.db
 
-@app.teardown_appcontext
-def close_db(exception):
-    db = g.pop("db", None)
-    if db is not None:
-        db.close()
+def get_db_connection():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 def init_db():
-    db = get_db()
-    db.executescript(
-        """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS restaurants (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
-            address TEXT,
-            cuisine TEXT
-        );
-
-        CREATE TABLE IF NOT EXISTS reviews (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            restaurant_id INTEGER NOT NULL,
+            category TEXT NOT NULL,
+            description TEXT,
             rating INTEGER NOT NULL,
-            notes TEXT,
-            created_at TEXT NOT NULL,
-            FOREIGN KEY (restaurant_id) REFERENCES restaurants (id)
-        );
-        """
-    )
-    db.commit()
+            image_filename TEXT
+        )
+    """)
 
-with app.app_context():
-    init_db()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS recipes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            description TEXT,
+            rating INTEGER NOT NULL,
+            image_filename TEXT
+        )
+    """)
 
-# ---------- Routes ----------
+    conn.commit()
+    conn.close()
+
 
 @app.route("/")
 def index():
-    db = get_db()
-    restaurants = db.execute(
-        "SELECT r.id, r.name, r.address, r.cuisine, "
-        "AVG(rv.rating) AS avg_rating, COUNT(rv.id) AS review_count "
-        "FROM restaurants r "
-        "LEFT JOIN reviews rv ON r.id = rv.restaurant_id "
-        "GROUP BY r.id "
-        "ORDER BY r.name"
-    ).fetchall()
-    return render_template("index.html", restaurants=restaurants)
+    conn = get_db_connection()
+    restaurants = conn.execute("SELECT * FROM restaurants ORDER BY id DESC").fetchall()
+    recipes = conn.execute("SELECT * FROM recipes ORDER BY id DESC").fetchall()
+    conn.close()
 
-@app.route("/restaurants/new", methods=["GET", "POST"])
+    return render_template("index.html", restaurants=restaurants, recipes=recipes)
+
+
+@app.route("/add_restaurant", methods=["GET", "POST"])
 def add_restaurant():
     if request.method == "POST":
         name = request.form["name"].strip()
-        address = request.form.get("address", "").strip()
-        cuisine = request.form.get("cuisine", "").strip()
+        category = request.form["category"].strip()
+        description = request.form["description"].strip()
+        rating = request.form["rating"]
 
-        if name:
-            db = get_db()
-            db.execute(
-                "INSERT INTO restaurants (name, address, cuisine) VALUES (?, ?, ?)",
-                (name, address, cuisine),
-            )
-            db.commit()
-            return redirect(url_for("index"))
+        file = request.files.get("image")
+        filename = None
+
+        if file and file.filename:
+            if allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            else:
+                flash("Invalid image file type. Please upload png, jpg, jpeg, or gif.")
+                return redirect(request.url)
+
+        conn = get_db_connection()
+        conn.execute(
+            """
+            INSERT INTO restaurants (name, category, description, rating, image_filename)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (name, category, description, rating, filename)
+        )
+        conn.commit()
+        conn.close()
+
+        flash("Restaurant added successfully!")
+        return redirect(url_for("index"))
 
     return render_template("add_restaurant.html")
 
-@app.route("/restaurants/<int:restaurant_id>", methods=["GET", "POST"])
+
+@app.route("/restaurant/<int:restaurant_id>")
 def restaurant_detail(restaurant_id):
-    db = get_db()
-
-    if request.method == "POST":
-        rating = int(request.form["rating"])
-        notes = request.form.get("notes", "").strip()
-        created_at = datetime.utcnow().isoformat(timespec="seconds")
-
-        db.execute(
-            "INSERT INTO reviews (restaurant_id, rating, notes, created_at) "
-            "VALUES (?, ?, ?, ?)",
-            (restaurant_id, rating, notes, created_at),
-        )
-        db.commit()
-        return redirect(url_for("restaurant_detail", restaurant_id=restaurant_id))
-
-    restaurant = db.execute(
-        "SELECT * FROM restaurants WHERE id = ?", (restaurant_id,)
+    conn = get_db_connection()
+    restaurant = conn.execute(
+        "SELECT * FROM restaurants WHERE id = ?",
+        (restaurant_id,)
     ).fetchone()
+    conn.close()
 
     if restaurant is None:
-        return "Restaurant not found", 404
+        flash("Restaurant not found.")
+        return redirect(url_for("index"))
 
-    reviews = db.execute(
-        "SELECT * FROM reviews WHERE restaurant_id = ? ORDER BY created_at DESC",
-        (restaurant_id,),
-    ).fetchall()
+    return render_template("restaurant_detail.html", restaurant=restaurant)
 
-    return render_template(
-        "restaurant_detail.html",
-        restaurant=restaurant,
-        reviews=reviews,
-    )
+
+@app.route("/add_recipe", methods=["GET", "POST"])
+def add_recipe():
+    if request.method == "POST":
+        name = request.form["name"].strip()
+        description = request.form["description"].strip()
+        rating = request.form["rating"]
+
+        file = request.files.get("image")
+        filename = None
+
+        if file and file.filename:
+            if allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+            else:
+                flash("Invalid image file type. Please upload png, jpg, jpeg, or gif.")
+                return redirect(request.url)
+
+        conn = get_db_connection()
+        conn.execute(
+            """
+            INSERT INTO recipes (name, description, rating, image_filename)
+            VALUES (?, ?, ?, ?)
+            """,
+            (name, description, rating, filename)
+        )
+        conn.commit()
+        conn.close()
+
+        flash("Recipe added successfully!")
+        return redirect(url_for("index"))
+
+    return render_template("add_recipe.html")
+
+
+@app.route("/recipe/<int:recipe_id>")
+def recipe_detail(recipe_id):
+    conn = get_db_connection()
+    recipe = conn.execute(
+        "SELECT * FROM recipes WHERE id = ?",
+        (recipe_id,)
+    ).fetchone()
+    conn.close()
+
+    if recipe is None:
+        flash("Recipe not found.")
+        return redirect(url_for("index"))
+
+    return render_template("recipe_detail.html", recipe=recipe)
+
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    init_db()
+    app.run(debug=True)
