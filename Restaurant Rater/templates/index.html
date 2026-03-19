@@ -2,26 +2,28 @@
 
 {% block content %}
 <section class="hero-card">
-    <h2>Restaurant Rater</h2>
-    <p>Save restaurants and recipes your family loves.</p>
+    <h2>Dinner Rater</h2>
+    <p>Himpele Family Favorites!</p>
 
     <div style="margin-top: 18px;">
         <a class="button" href="{{ url_for('add_restaurant') }}">Add Restaurant</a>
         <a class="button" href="{{ url_for('add_recipe') }}">Add Recipe</a>
     </div>
 
+    <!-- PIZZA PHOTO FIRST -->
     <div style="margin-top: 24px;">
         <img
-            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836"
-            alt="Food"
+            src="https://i.imgur.com/LV0mwRG.jpeg"
+            alt="Family pizza"
             class="detail-image"
         >
     </div>
 
+    <!-- FOOD PHOTO SECOND -->
     <div style="margin-top: 16px;">
         <img
-            src="https://i.imgur.com/LV0mwRG.jpeg"
-            alt="Family pizza"
+            src="https://images.unsplash.com/photo-1504674900247-0877df9cc836"
+            alt="Food"
             class="detail-image"
         >
     </div>
