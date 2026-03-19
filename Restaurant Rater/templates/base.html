@@ -11,22 +11,12 @@
         <div class="header-inner">
             <div class="brand">
                 <h1><a href="{{ url_for('index') }}">Restaurant Rater</a></h1>
-                <p class="tagline">Rate restaurants and save favorite family recipes</p>
+                <p class="tagline">Save restaurants and recipes your family loves.</p>
             </div>
         </div>
     </header>
 
     <main class="page-wrap">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="flash-area">
-                    {% for message in messages %}
-                        <div class="flash-message">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-        {% endwith %}
-
         {% block content %}{% endblock %}
     </main>
 </body>

@@ -1,16 +1,36 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="detail-card">
-    <h2>{{ recipe.name }}</h2>
+<section class="content-section">
+    <div class="detail-card">
+        <h2>{{ recipe.name }}</h2>
 
-    {% if recipe.image_filename %}
-        <img class="detail-image" src="{{ url_for('static', filename='uploads/' + recipe.image_filename) }}" alt="{{ recipe.name }}">
-    {% endif %}
+        <div class="rating-badge">{{ recipe.rating }}/10</div>
 
-    <p><strong>Rating:</strong> {{ recipe.rating }}/5</p>
-    <p><strong>Description:</strong> {{ recipe.description }}</p>
+        {% if recipe.description %}
+            <p><strong>Notes:</strong> {{ recipe.description }}</p>
+        {% endif %}
 
-    <a class="button" href="{{ url_for('index') }}">Back to Home</a>
-</div>
+        {% if photos %}
+            <h3>Photos</h3>
+            <div class="card-grid">
+                {% for photo in photos %}
+                    <div class="card">
+                        <img
+                            class="detail-image"
+                            src="{{ url_for('static', filename='uploads/' + photo.filename) }}"
+                            alt="{{ recipe.name }}"
+                        >
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No photos yet.</p>
+        {% endif %}
+
+        <div style="margin-top: 20px;">
+            <a class="button" href="{{ url_for('index') }}">Back Home</a>
+        </div>
+    </div>
+</section>
 {% endblock %}

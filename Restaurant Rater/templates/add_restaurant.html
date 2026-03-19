@@ -3,16 +3,18 @@
 {% block content %}
 <section class="content-section">
     <div class="form-card">
-        <p class="section-kicker">Add Restaurant</p>
-        <h2>Save a new restaurant</h2>
+        <h2>Add Restaurant</h2>
+        <p class="muted-text">
+            Save where you went, who was there, what you ate, and how much you liked it.
+        </p>
 
-        <form method="POST" enctype="multipart/form-data">
+        <form method="POST">
             <label for="name">Restaurant Name</label>
             <input type="text" id="name" name="name" required>
 
             <label for="category">Cuisine Style</label>
             <select id="category" name="category" required>
-                <option value="">Select a cuisine style</option>
+                <option value="">Select a cuisine</option>
                 {% for cuisine in cuisines %}
                     <option value="{{ cuisine }}">{{ cuisine }}</option>
                 {% endfor %}
@@ -26,7 +28,7 @@
                 type="text"
                 id="attendees"
                 name="attendees"
-                placeholder="Example: Mom, Dad, Emma, Jake"
+                placeholder="Mom, Dad, Emma, Jake"
             >
 
             <label for="dishes_tried">Dishes Tried</label>
@@ -34,10 +36,10 @@
                 id="dishes_tried"
                 name="dishes_tried"
                 rows="3"
-                placeholder="Example: chicken tikka masala, garlic naan, mango lassi"
+                placeholder="Tacos, guacamole, churros"
             ></textarea>
 
-            <label for="description">Notes / Description</label>
+            <label for="description">Notes</label>
             <textarea
                 id="description"
                 name="description"
@@ -56,9 +58,6 @@
                 placeholder="8.5"
                 required
             >
-
-            <label for="image">Upload Photo</label>
-            <input type="file" id="image" name="image" accept="image/*">
 
             <button type="submit">Save Restaurant</button>
         </form>
