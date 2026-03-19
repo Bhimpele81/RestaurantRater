@@ -197,12 +197,44 @@ def recipes_list():
 
     if q:
         recipes = conn.execute(
-            "SELECT * FROM recipes WHERE name LIKE ? OR description LIKE ? ORDER BY id DESC",
+            """
+            SELECT
+                recipes.id,
+                recipes.name,
+                recipes.description,
+                recipes.rating,
+                (
+                    SELECT filename
+                    FROM recipe_photos
+                    WHERE recipe_photos.recipe_id = recipes.id
+                    ORDER BY id ASC
+                    LIMIT 1
+                ) AS cover_photo
+            FROM recipes
+            WHERE recipes.name LIKE ?
+               OR recipes.description LIKE ?
+            ORDER BY recipes.id DESC
+            """,
             (f"%{q}%", f"%{q}%")
         ).fetchall()
     else:
         recipes = conn.execute(
-            "SELECT * FROM recipes ORDER BY id DESC"
+            """
+            SELECT
+                recipes.id,
+                recipes.name,
+                recipes.description,
+                recipes.rating,
+                (
+                    SELECT filename
+                    FROM recipe_photos
+                    WHERE recipe_photos.recipe_id = recipes.id
+                    ORDER BY id ASC
+                    LIMIT 1
+                ) AS cover_photo
+            FROM recipes
+            ORDER BY recipes.id DESC
+            """
         ).fetchall()
 
     conn.close()
@@ -213,13 +245,15 @@ def recipes_list():
 @app.route("/add_restaurant", methods=["GET", "POST"])
 def add_restaurant():
     if request.method == "POST":
-        name = request.form["name"]
-        category = request.form["category"]
-        description = request.form["description"]
-        dishes_tried = request.form["dishes_tried"]
-        attendees = request.form["attendees"]
-        visit_date = request.form["visit_date"]
-        rating = float(request.form["rating"])
+        name = request.form.get("name", "").strip()
+        category = request.form.get("category", "").strip()
+        description = request.form.get("description", "").strip()
+        dishes_tried = request.form.get("dishes_tried", "").strip()
+        attendees = request.form.get("attendees", "").strip()
+        visit_date = request.form.get("visit_date", "").strip()
+
+        rating_value = request.form.get("rating", "").strip()
+        rating = float(rating_value) if rating_value else None
 
         image_filename = None
         image = request.files.get("image")
@@ -261,9 +295,13 @@ def restaurant_detail(id):
 @app.route("/add_recipe", methods=["GET", "POST"])
 def add_recipe():
     if request.method == "POST":
-        name = request.form["name"]
-        description = request.form["description"]
-        rating = float(request.form["rating"])
+        name = request.form.get("name", "").strip()
+
+        # This keeps pasted recipe text as-is in the database
+        description = request.form.get("description", "").strip()
+
+        rating_value = request.form.get("rating", "").strip()
+        rating = float(rating_value) if rating_value else None
 
         conn = get_db_connection()
         cursor = conn.execute(
