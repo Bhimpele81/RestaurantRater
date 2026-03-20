@@ -27,16 +27,28 @@ ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 database_url = os.environ.get("DATABASE_URL")
+is_production = bool(database_url)
 
 if database_url:
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql+psycopg://", 1)
     elif database_url.startswith("postgresql://"):
         database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    # Production PostgreSQL with connection pooling
+    engine = create_engine(
+        database_url,
+        future=True,
+        pool_size=5,
+        max_overflow=10,
+        pool_pre_ping=True,
+        pool_recycle=3600,
+        echo=False
+    )
 else:
+    # Development SQLite
     database_url = "sqlite:///" + os.path.join(BASE_DIR, "restaurant_rater.db")
+    engine = create_engine(database_url, future=True, echo=False)
 
-engine = create_engine(database_url, future=True)
 SessionLocal = scoped_session(sessionmaker(bind=engine, autoflush=False, autocommit=False))
 Base = declarative_base()
 
