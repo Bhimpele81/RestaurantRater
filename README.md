@@ -1,99 +1,63 @@
-# 🍽️ Dinner Rater
+# Dinner Rater
 
-A simple web app for tracking and rating restaurants and recipes with your family.
+Dinner Rater is a full-stack web application for tracking restaurant experiences and saving favorite recipes in one place.
 
-## 📌 Overview
+It helps users:
+- rate restaurants and individual food items
+- save recipes with photos
+- search past meals and recipes
+- organize dining memories in a simple, visual way
 
-Dinner Rater allows users to:
-- Save restaurants they’ve visited
-- Rate experiences (1–10 scale)
-- Track who attended and what dishes were tried
-- Add and rate favorite recipes
-- Upload photos for recipes
-- View recent highlights with images
-
-This project was built using Flask (Python) and SQLite.
-
----
-
-## 🚀 Features
+## Features
 
 ### Restaurants
-- Add restaurant name, cuisine, and notes
-- Record visit date and attendees
-- Track dishes tried
-- Rate each experience
+- Add new restaurants
+- Store city and state information
+- Rate individual food items
+- View restaurant details
+- Edit and delete restaurant entries
+- Search restaurants
 
 ### Recipes
-- Save favorite recipes
-- Add notes and ratings
-- Upload multiple photos
+- Add recipes with ingredients and instructions
+- Upload one or more recipe photos
+- View recipe details
+- Edit and delete recipes
+- Search recipes
 
-### Homepage
-- View all restaurants and recipes
-- “Recent Highlights” section showing recent entries with photos
+### Shared Features
+- Image upload support
+- Search across content
+- Mobile-friendly responsive layout
+- PostgreSQL in production
+- SQLite in development
 
----
+## Tech Stack
 
-## 🛠️ Tech Stack
+- **Backend:** Flask
+- **Database ORM:** SQLAlchemy
+- **Production Database:** PostgreSQL
+- **Development Database:** SQLite
+- **Frontend:** HTML, CSS, Jinja templates
+- **Forms / Routing:** Flask
+- **Image Handling:** File upload + stored image references
 
-- Python (Flask)
-- SQLite database
-- HTML / CSS
-- Jinja templates
+## Project Goal
 
----
+The goal of Dinner Rater is to become both:
+- a polished **website**
+- and an **app-like experience** for mobile users
 
-## 📁 Project Structure
+The current roadmap is:
+1. polish the existing Flask website
+2. make it fully responsive
+3. add Progressive Web App (PWA) support
+4. add API endpoints
+5. later expand into a native mobile app
 
-Restaurant Rater/
+## Installation
 
-├── app.py  
-├── restaurant_rater.db  
-
-├── templates/  
-│   ├── base.html  
-│   ├── index.html  
-│   ├── add_restaurant.html  
-│   ├── add_recipe.html  
-│   ├── restaurant_detail.html  
-│   └── recipe_detail.html  
-
-├── static/  
-│   ├── style.css  
-│   └── uploads/  
-
----
-
-## ▶️ How to Run
-
-1. Install dependencies (if needed):
-
-pip install flask
-
-2. Run the app:
-
-python app.py
-
-3. Open in browser:
-
-http://127.0.0.1:5000
-
----
-
-## 📸 Future Improvements
-
-- Add restaurant photo uploads  
-- User accounts (family members)  
-- Search and filtering  
-- Edit/delete entries  
-- Mobile-friendly improvements  
-
----
-
-## 🙌 Notes
-
-This project was built as a beginner-friendly way to learn:
-- Web development with Flask  
-- Working with databases  
-- Building a full-stack app from scratch  
+### 1. Clone the repository
+```bash
+git clone <your-repo-url>
+cd <your-repo-folder>
