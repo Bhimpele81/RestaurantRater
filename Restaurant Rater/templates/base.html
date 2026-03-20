@@ -1,49 +1,34 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dinner Rater - Restaurant & Recipe Tracker</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍔</text></svg>">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <h1><a href="{{ url_for('index') }}">Dinner Rater</a></h1>
+            <p style="margin: 5px 0 0 0; color: #0f2a44;">Himpele Family Favorites</p>
 
-{% block content %}
-<section class="content-section">
-    <div class="section-title">
-        <h2>Restaurants</h2>
-        <p class="muted-text">Browse and search past restaurant visits</p>
-    </div>
-
-    <form method="GET" action="{{ url_for('restaurants_list') }}" style="margin-bottom: 24px;">
-        <input type="text" name="q" value="{{ q }}" placeholder="Search restaurants">
-        <button type="submit" class="button">Search</button>
-    </form>
-
-    {% if restaurants %}
-        {% for restaurant in restaurants %}
-            <div class="card">
-
-                {% if restaurant.image_filename %}
-                    <img
-                        src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
-                        alt="{{ restaurant.name }}"
-                    >
-                {% endif %}
-
-                <h3>{{ restaurant.name }}</h3>
-
-                {% if restaurant.effective_rating %}
-                    <p class="rating-badge">{{ restaurant.effective_rating }}/10</p>
-                {% endif %}
-
-                <p><strong>Cuisine:</strong> {{ restaurant.category }}</p>
-
-                {% if restaurant.city %}
-                    <p><strong>Location:</strong> {{ restaurant.city }}, {{ restaurant.state }}</p>
-                {% endif %}
-
-                <a class="button" href="{{ url_for('restaurant_detail', id=restaurant.id) }}">
-                    View Details
-                </a>
-
+            <div style="margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <a class="button" href="{{ url_for('index') }}">Home</a>
+                <a class="button" href="{{ url_for('restaurants_list') }}">Restaurants</a>
+                <a class="button" href="{{ url_for('recipes_list') }}">Recipes</a>
+                <a class="button" href="{{ url_for('add_restaurant') }}">Add Restaurant</a>
+                <a class="button" href="{{ url_for('add_recipe') }}">Add Recipe</a>
             </div>
-        {% endfor %}
-    {% else %}
-        <div class="empty-state">No restaurants found.</div>
-    {% endif %}
-</section>
-{% endblock %}
+        </div>
+    </header>
 
+    <main class="page-wrap">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer style="text-align: center; margin-top: 40px; padding: 20px; color: #666;">
+        <p>&copy; 2026 Dinner Rater. All your family's favorite meals in one place.</p>
+    </footer>
+</body>
+</html>
