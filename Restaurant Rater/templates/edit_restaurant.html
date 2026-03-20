@@ -102,14 +102,22 @@
                 If you clear it, the average will appear again.
             </p>
 
-            {% if restaurant.image_filename %}
+            {% if restaurant.image_data or restaurant.image_filename %}
                 <div style="margin-top: 14px;">
                     <p><strong>Current Photo:</strong></p>
-                    <img
-                        src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
-                        alt="{{ restaurant.name }}"
-                        class="detail-image"
-                    >
+                    {% if restaurant.image_data %}
+                        <img
+                            src="{{ restaurant.image_data }}"
+                            alt="{{ restaurant.name }}"
+                            class="detail-image"
+                        >
+                    {% else %}
+                        <img
+                            src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
+                            alt="{{ restaurant.name }}"
+                            class="detail-image"
+                        >
+                    {% endif %}
                 </div>
             {% endif %}
 

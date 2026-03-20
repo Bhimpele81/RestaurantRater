@@ -31,7 +31,9 @@
     <div class="card-grid">
         {% for item in recent_highlights %}
         <div class="card">
-            {% if item.image_filename %}
+            {% if item.image_data %}
+            <img src="{{ item.image_data }}" alt="{{ item.name }}">
+            {% elif item.image_filename %}
             <img src="{{ url_for('static', filename='uploads/' + item.image_filename) }}" alt="{{ item.name }}">
             {% endif %}
 
@@ -67,7 +69,10 @@
     <div class="card-grid">
         {% for restaurant in restaurants %}
         <div class="card">
-            {% if restaurant.image_filename %}
+            {% if restaurant.image_data %}
+            <img src="{{ restaurant.image_data }}"
+                alt="{{ restaurant.name }}">
+            {% elif restaurant.image_filename %}
             <img src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
                 alt="{{ restaurant.name }}">
             {% endif %}
@@ -109,7 +114,9 @@
     <div class="card-grid">
         {% for recipe in recipes %}
         <div class="card">
-            {% if recipe.cover_photo %}
+            {% if recipe.cover_photo_data %}
+            <img src="{{ recipe.cover_photo_data }}" alt="{{ recipe.name }}">
+            {% elif recipe.cover_photo %}
             <img src="{{ url_for('static', filename='uploads/' + recipe.cover_photo) }}" alt="{{ recipe.name }}">
             {% endif %}
 
