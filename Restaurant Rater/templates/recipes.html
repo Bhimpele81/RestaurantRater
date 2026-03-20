@@ -7,8 +7,14 @@
         <p class="muted-text">Browse and search past recipe posts</p>
     </div>
 
-    <form method="GET" action="{{ url_for('recipes_list') }}" style="margin-bottom: 24px;">
-        <input type="text" name="q" value="{{ q }}" placeholder="Search recipes">
+    <form method="GET" action="{{ url_for('recipes_list') }}" style="margin-bottom: 24px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <input
+            type="text"
+            name="q"
+            value="{{ q }}"
+            placeholder="Search recipes"
+            style="flex: 1; min-width: 260px; padding: 12px; border-radius: 8px; border: 1px solid #ccc;"
+        >
         <button type="submit" class="button">Search</button>
     </form>
 
@@ -16,27 +22,29 @@
         <div class="card-grid">
             {% for recipe in recipes %}
                 <div class="card">
-                    {% if recipe["cover_photo"] %}
+                    {% if recipe.cover_photo_data %}
                         <img
-                            src="{{ url_for('static', filename='uploads/' + recipe['cover_photo']) }}"
-                            alt="{{ recipe['name'] }}"
-                            class="recipe-card-image"
+                            src="{{ recipe.cover_photo_data }}"
+                            alt="{{ recipe.name }}"
+                        >
+                    {% elif recipe.cover_photo %}
+                        <img
+                            src="{{ url_for('static', filename='uploads/' + recipe.cover_photo) }}"
+                            alt="{{ recipe.name }}"
                         >
                     {% endif %}
 
-                    <h3>{{ recipe["name"] }}</h3>
+                    <h3>{{ recipe.name }}</h3>
 
-                    {% if recipe["rating"] is not none %}
-                        <p><span class="rating-badge">{{ recipe["rating"] }}/10</span></p>
+                    {% if recipe.rating is not none %}
+                        <div class="rating-badge">{{ recipe.rating }}/10</div>
                     {% endif %}
 
-                    {% if recipe["description"] %}
-                        <div class="recipe-preview">
-                            {{ recipe["description"][:220] }}{% if recipe["description"]|length > 220 %}...{% endif %}
-                        </div>
+                    {% if recipe.description %}
+                        <p>{{ recipe.description }}</p>
                     {% endif %}
 
-                    <a class="button" href="{{ url_for('recipe_detail', id=recipe['id']) }}">View Recipe</a>
+                    <a class="button" href="{{ url_for('recipe_detail', id=recipe.id) }}">View Recipe</a>
                 </div>
             {% endfor %}
         </div>

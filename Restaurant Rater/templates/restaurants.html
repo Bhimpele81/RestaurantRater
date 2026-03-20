@@ -4,11 +4,17 @@
 <section class="content-section">
     <div class="section-title">
         <h2>Restaurants</h2>
-        <p class="muted-text">Browse and search past restaurant visits</p>
+        <p class="muted-text">Browse and search past restaurant posts</p>
     </div>
 
-    <form method="GET" action="{{ url_for('restaurants_list') }}" style="margin-bottom: 24px;">
-        <input type="text" name="q" value="{{ q }}" placeholder="Search restaurants">
+    <form method="GET" action="{{ url_for('restaurants_list') }}" style="margin-bottom: 24px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <input
+            type="text"
+            name="q"
+            value="{{ q }}"
+            placeholder="Search restaurants"
+            style="flex: 1; min-width: 260px; padding: 12px; border-radius: 8px; border: 1px solid #ccc;"
+        >
         <button type="submit" class="button">Search</button>
     </form>
 
@@ -16,7 +22,12 @@
         <div class="card-grid">
             {% for restaurant in restaurants %}
                 <div class="card">
-                    {% if restaurant.image_filename %}
+                    {% if restaurant.image_data %}
+                        <img
+                            src="{{ restaurant.image_data }}"
+                            alt="{{ restaurant.name }}"
+                        >
+                    {% elif restaurant.image_filename %}
                         <img
                             src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
                             alt="{{ restaurant.name }}"
@@ -27,25 +38,16 @@
 
                     {% if restaurant.effective_rating is not none %}
                         <div class="rating-badge">{{ restaurant.effective_rating }}/10</div>
+                    {% elif restaurant.rating is not none %}
+                        <div class="rating-badge">{{ restaurant.rating }}/10</div>
                     {% endif %}
 
                     {% if restaurant.category %}
                         <p><strong>Cuisine:</strong> {{ restaurant.category }}</p>
                     {% endif %}
 
-                    {% if restaurant.city or restaurant.state %}
-                        <p>
-                            <strong>Location:</strong>
-                            {{ restaurant.city }}{% if restaurant.city and restaurant.state %}, {% endif %}{{ restaurant.state }}
-                        </p>
-                    {% endif %}
-
-                    {% if restaurant.food_items %}
-                        <p><strong>Food Items:</strong> {{ restaurant.food_items|length }}</p>
-                    {% endif %}
-
                     {% if restaurant.description %}
-                        <p>{{ restaurant.description[:150] }}{% if restaurant.description|length > 150 %}...{% endif %}</p>
+                        <p>{{ restaurant.description }}</p>
                     {% endif %}
 
                     <a class="button" href="{{ url_for('restaurant_detail', id=restaurant.id) }}">View Details</a>

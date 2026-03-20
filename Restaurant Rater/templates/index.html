@@ -2,9 +2,13 @@
 
 {% block content %}
 <section class="hero-card">
+    <div style="margin-top: 18px;">
+        <a class="button" href="{{ url_for('add_restaurant') }}">Add Restaurant</a>
+        <a class="button" href="{{ url_for('add_recipe') }}">Add Recipe</a>
+    </div>
 
-    <div style="margin-top: 24px; display: flex; gap: 15px;">
-        <div style="flex: 1;">
+    <div style="margin-top: 24px; display: flex; gap: 15px; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 280px;">
             <img
                 src="https://i.imgur.com/LV0mwRG.jpeg"
                 alt="Family pizza"
@@ -12,18 +16,13 @@
             >
         </div>
 
-        <div style="flex: 1;">
+        <div style="flex: 1; min-width: 280px;">
             <img
                 src="https://images.unsplash.com/photo-1504674900247-0877df9cc836"
                 alt="Food"
                 style="width: 100%; height: 350px; object-fit: cover; border-radius: 10px;"
             >
         </div>
-    </div>
-
-    <div style="margin-top: 18px;">
-        <a class="button" href="{{ url_for('add_restaurant') }}">Add Restaurant</a>
-        <a class="button" href="{{ url_for('add_recipe') }}">Add Recipe</a>
     </div>
 </section>
 
@@ -37,7 +36,12 @@
         <div class="card-grid">
             {% for item in recent_highlights %}
                 <div class="card">
-                    {% if item.image_filename %}
+                    {% if item.image_data %}
+                        <img
+                            src="{{ item.image_data }}"
+                            alt="{{ item.name }}"
+                        >
+                    {% elif item.image_filename %}
                         <img
                             src="{{ url_for('static', filename='uploads/' + item.image_filename) }}"
                             alt="{{ item.name }}"
@@ -45,7 +49,10 @@
                     {% endif %}
 
                     <h3>{{ item.name }}</h3>
-                    <div class="rating-badge">{{ item.rating }}/10</div>
+
+                    {% if item.rating is not none %}
+                        <div class="rating-badge">{{ item.rating }}/10</div>
+                    {% endif %}
 
                     {% if item.description %}
                         <p>{{ item.description }}</p>
@@ -73,7 +80,12 @@
     <div class="card-grid">
         {% for restaurant in restaurants %}
             <div class="card">
-                {% if restaurant.image_filename %}
+                {% if restaurant.image_data %}
+                    <img
+                        src="{{ restaurant.image_data }}"
+                        alt="{{ restaurant.name }}"
+                    >
+                {% elif restaurant.image_filename %}
                     <img
                         src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
                         alt="{{ restaurant.name }}"
@@ -81,15 +93,15 @@
                 {% endif %}
 
                 <h3>{{ restaurant.name }}</h3>
-                <div class="rating-badge">{{ restaurant.rating }}/10</div>
 
-                <p><strong>Cuisine:</strong> {{ restaurant.category }}</p>
+                {% if restaurant.effective_rating is not none %}
+                    <div class="rating-badge">{{ restaurant.effective_rating }}/10</div>
+                {% elif restaurant.rating is not none %}
+                    <div class="rating-badge">{{ restaurant.rating }}/10</div>
+                {% endif %}
 
-                {% if restaurant.city or restaurant.state %}
-                    <p>
-                        <strong>Location:</strong>
-                        {{ restaurant.city }}{% if restaurant.city and restaurant.state %}, {% endif %}{{ restaurant.state }}
-                    </p>
+                {% if restaurant.category %}
+                    <p><strong>Cuisine:</strong> {{ restaurant.category }}</p>
                 {% endif %}
 
                 {% if restaurant.visit_date %}
@@ -121,7 +133,12 @@
     <div class="card-grid">
         {% for recipe in recipes %}
             <div class="card">
-                {% if recipe.cover_photo %}
+                {% if recipe.cover_photo_data %}
+                    <img
+                        src="{{ recipe.cover_photo_data }}"
+                        alt="{{ recipe.name }}"
+                    >
+                {% elif recipe.cover_photo %}
                     <img
                         src="{{ url_for('static', filename='uploads/' + recipe.cover_photo) }}"
                         alt="{{ recipe.name }}"
@@ -129,7 +146,10 @@
                 {% endif %}
 
                 <h3>{{ recipe.name }}</h3>
-                <div class="rating-badge">{{ recipe.rating }}/10</div>
+
+                {% if recipe.rating is not none %}
+                    <div class="rating-badge">{{ recipe.rating }}/10</div>
+                {% endif %}
 
                 {% if recipe.description %}
                     <p>{{ recipe.description }}</p>
@@ -142,71 +162,4 @@
         {% endfor %}
     </div>
 </section>
-
-<section class="content-section">
-    <div class="section-title">
-        <h2>Restaurant Map</h2>
-        <p class="muted-text">Pinpoints of restaurants you've tried</p>
-    </div>
-
-    <div class="card">
-        {% if map_restaurants %}
-            <div id="restaurant-map" style="width: 100%; height: 420px; border-radius: 10px;"></div>
-            <p style="margin-top: 12px;">
-                Click a pin to see the restaurant name and location.
-            </p>
-        {% else %}
-            <div class="empty-state">
-                No mapped restaurants yet. Add a restaurant with a city and state to place a pin on the map.
-            </div>
-        {% endif %}
-    </div>
-</section>
-
-{% if map_restaurants %}
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    >
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    <script>
-        const mapRestaurants = {{ map_restaurants | tojson }};
-        const firstRestaurant = mapRestaurants[0];
-
-        const map = L.map("restaurant-map").setView(
-            [firstRestaurant.latitude, firstRestaurant.longitude],
-            6
-        );
-
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            maxZoom: 19,
-            attribution: "&copy; OpenStreetMap contributors"
-        }).addTo(map);
-
-        const bounds = [];
-
-        mapRestaurants.forEach(function (restaurant) {
-            const marker = L.marker([restaurant.latitude, restaurant.longitude]).addTo(map);
-
-            const locationText = [restaurant.city, restaurant.state]
-                .filter(Boolean)
-                .join(", ");
-
-            const detailUrl = "{{ url_for('restaurant_detail', id=0) }}".replace("0", restaurant.id);
-
-            marker.bindPopup(
-                "<strong>" + restaurant.name + "</strong><br>" +
-                locationText + "<br>" +
-                "<a href='" + detailUrl + "'>View Details</a>"
-            );
-
-            bounds.push([restaurant.latitude, restaurant.longitude]);
-        });
-
-        if (bounds.length > 1) {
-            map.fitBounds(bounds, { padding: [30, 30] });
-        }
-    </script>
-{% endif %}
 {% endblock %}
