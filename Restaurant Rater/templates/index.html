@@ -3,6 +3,12 @@
 {% block content %}
 <section class="hero-card">
 
+    <div style="margin-bottom: 20px;">
+        <h2 style="margin: 0 0 8px 0; font-size: 2rem; color: #0f2a44; line-height: 1.2;">
+            Our Family’s Favorite Restaurants & Recipes
+        </h2>
+    </div>
+
     <div style="margin-top: 24px; display: flex; gap: 15px;">
         <div style="flex: 1;">
             <img src="https://i.imgur.com/LV0mwRG.jpeg" alt="Family pizza"
@@ -163,7 +169,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-    const mapRestaurants = {{map_restaurants | tojson }};
+    const mapRestaurants = {{ map_restaurants | tojson }};
     const firstRestaurant = mapRestaurants[0];
 
     const map = L.map("restaurant-map").setView(
@@ -197,7 +203,7 @@
     });
 
     if (bounds.length > 1) {
-        map.fitBounds(bounds, {padding: [30, 30]});
+        map.fitBounds(bounds, { padding: [30, 30] });
     }
 </script>
 {% endif %}
