@@ -1,39 +1,18 @@
 import os
-import sqlite3
 import json
 import urllib.parse
 import urllib.request
 from flask import Flask, render_template, request, redirect, url_for
+from replit import db
 
 app = Flask(__name__)
 app.secret_key = "secret"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
-APP_ENV = os.environ.get("APP_ENV", "dev").lower()
-
-if APP_ENV == "prod":
-    DATABASE = os.path.join(BASE_DIR, "restaurant_rater_prod.db")
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads_prod")
-else:
-    DATABASE = os.path.join(BASE_DIR, "restaurant_rater_dev.db")
-    UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads_dev")
-
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-
-def get_upload_subfolder():
-    if APP_ENV == "prod":
-        return "uploads_prod"
-    return "uploads_dev"
-
-
-def get_db_connection():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
 
 
 def allowed_file(filename):
@@ -82,14 +61,6 @@ def delete_uploaded_file(filename):
             pass
 
 
-def ensure_column(conn, table_name, column_name, column_definition):
-    columns = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
-    existing_column_names = [column["name"] for column in columns]
-
-    if column_name not in existing_column_names:
-        conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_definition}")
-
-
 def geocode_city_state(city, state):
     if not city or not state:
         return None, None
@@ -122,89 +93,48 @@ def geocode_city_state(city, state):
 
 
 def init_db():
-    conn = get_db_connection()
+    if "next_restaurant_id" not in db:
+        db["next_restaurant_id"] = 1
 
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS restaurants (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        category TEXT,
-        description TEXT,
-        dishes_tried TEXT,
-        attendees TEXT,
-        visit_date TEXT,
-        rating REAL,
-        image_filename TEXT,
-        city TEXT,
-        state TEXT,
-        latitude REAL,
-        longitude REAL
-    )
-    """)
+    if "next_recipe_id" not in db:
+        db["next_recipe_id"] = 1
 
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS recipes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT,
-        description TEXT,
-        rating REAL
-    )
-    """)
+    if "restaurants" not in db:
+        db["restaurants"] = {}
 
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS recipe_photos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        recipe_id INTEGER NOT NULL,
-        filename TEXT NOT NULL,
-        FOREIGN KEY (recipe_id) REFERENCES recipes (id)
-    )
-    """)
-
-    conn.execute("""
-    CREATE TABLE IF NOT EXISTS restaurant_food_items (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        restaurant_id INTEGER NOT NULL,
-        item_name TEXT NOT NULL,
-        item_rating REAL,
-        FOREIGN KEY (restaurant_id) REFERENCES restaurants (id)
-    )
-    """)
-
-    ensure_column(conn, "restaurants", "name", "TEXT")
-    ensure_column(conn, "restaurants", "category", "TEXT")
-    ensure_column(conn, "restaurants", "description", "TEXT")
-    ensure_column(conn, "restaurants", "dishes_tried", "TEXT")
-    ensure_column(conn, "restaurants", "attendees", "TEXT")
-    ensure_column(conn, "restaurants", "visit_date", "TEXT")
-    ensure_column(conn, "restaurants", "rating", "REAL")
-    ensure_column(conn, "restaurants", "image_filename", "TEXT")
-    ensure_column(conn, "restaurants", "city", "TEXT")
-    ensure_column(conn, "restaurants", "state", "TEXT")
-    ensure_column(conn, "restaurants", "latitude", "REAL")
-    ensure_column(conn, "restaurants", "longitude", "REAL")
-
-    conn.commit()
-    conn.close()
+    if "recipes" not in db:
+        db["recipes"] = {}
 
 
-def get_food_items_for_restaurant(conn, restaurant_id):
-    return conn.execute(
-        """
-        SELECT * FROM restaurant_food_items
-        WHERE restaurant_id = ?
-        ORDER BY id ASC
-        """,
-        (restaurant_id,)
-    ).fetchall()
+def get_restaurants():
+    restaurants = dict(db.get("restaurants", {}))
+    restaurant_list = list(restaurants.values())
+    restaurant_list.sort(key=lambda x: x["id"], reverse=True)
+    return restaurant_list
+
+
+def save_restaurants(restaurants_dict):
+    db["restaurants"] = restaurants_dict
+
+
+def get_recipes():
+    recipes = dict(db.get("recipes", {}))
+    recipe_list = list(recipes.values())
+    recipe_list.sort(key=lambda x: x["id"], reverse=True)
+    return recipe_list
+
+
+def save_recipes(recipes_dict):
+    db["recipes"] = recipes_dict
 
 
 def compute_average_food_rating(food_items):
     ratings = []
 
     for item in food_items:
-        rating = item["item_rating"] if isinstance(item, sqlite3.Row) else item.get("item_rating")
-        if rating is not None:
-            ratings.append(float(rating))
+        item_rating = item.get("item_rating")
+        if item_rating is not None:
+            ratings.append(float(item_rating))
 
     if not ratings:
         return None
@@ -212,106 +142,54 @@ def compute_average_food_rating(food_items):
     return round(sum(ratings) / len(ratings), 1)
 
 
-def attach_restaurant_display_data(conn, restaurants):
-    enriched = []
+def build_restaurant_display_data(restaurant):
+    food_items = restaurant.get("food_items", [])
+    average_food_rating = compute_average_food_rating(food_items)
 
-    for restaurant in restaurants:
-        food_items = get_food_items_for_restaurant(conn, restaurant["id"])
-        average_food_rating = compute_average_food_rating(food_items)
+    if restaurant.get("rating") is not None:
+        effective_rating = restaurant.get("rating")
+        rating_source = "manual"
+    else:
+        effective_rating = average_food_rating
+        rating_source = "average"
 
-        if restaurant["rating"] is not None:
-            effective_rating = restaurant["rating"]
-            rating_source = "manual"
-        else:
-            effective_rating = average_food_rating
-            rating_source = "average"
-
-        enriched.append({
-            "id": restaurant["id"],
-            "name": restaurant["name"],
-            "category": restaurant["category"],
-            "description": restaurant["description"],
-            "dishes_tried": restaurant["dishes_tried"],
-            "attendees": restaurant["attendees"],
-            "visit_date": restaurant["visit_date"],
-            "rating": restaurant["rating"],
-            "effective_rating": effective_rating,
-            "rating_source": rating_source,
-            "image_filename": restaurant["image_filename"],
-            "city": restaurant["city"],
-            "state": restaurant["state"],
-            "latitude": restaurant["latitude"],
-            "longitude": restaurant["longitude"],
-            "food_items": food_items,
-            "average_food_rating": average_food_rating
-        })
-
-    return enriched
-
-
-@app.context_processor
-def inject_app_context():
-    return {
-        "upload_subfolder": get_upload_subfolder(),
-        "app_env": APP_ENV
-    }
+    restaurant_copy = dict(restaurant)
+    restaurant_copy["average_food_rating"] = average_food_rating
+    restaurant_copy["effective_rating"] = effective_rating
+    restaurant_copy["rating_source"] = rating_source
+    return restaurant_copy
 
 
 @app.route("/")
 def index():
-    conn = get_db_connection()
-
-    raw_restaurants = conn.execute(
-        "SELECT * FROM restaurants ORDER BY id DESC"
-    ).fetchall()
-    restaurants = attach_restaurant_display_data(conn, raw_restaurants)
-
-    recipes = conn.execute(
-        """
-        SELECT
-            recipes.id,
-            recipes.name,
-            recipes.description,
-            recipes.rating,
-            (
-                SELECT filename
-                FROM recipe_photos
-                WHERE recipe_photos.recipe_id = recipes.id
-                ORDER BY id ASC
-                LIMIT 1
-            ) AS cover_photo
-        FROM recipes
-        ORDER BY recipes.id DESC
-        """
-    ).fetchall()
+    restaurants = [build_restaurant_display_data(r) for r in get_restaurants()]
+    recipes = get_recipes()
 
     recent_highlights = []
 
     for recipe in recipes[:6]:
-        if recipe["cover_photo"]:
+        if recipe.get("photo_filenames"):
             recent_highlights.append(
                 {
                     "type": "recipe",
                     "id": recipe["id"],
                     "name": recipe["name"],
-                    "rating": recipe["rating"],
-                    "description": recipe["description"],
-                    "image_filename": recipe["cover_photo"],
-                    "upload_subfolder": get_upload_subfolder()
+                    "rating": recipe.get("rating"),
+                    "description": recipe.get("description"),
+                    "image_filename": recipe["photo_filenames"][0],
                 }
             )
 
     for restaurant in restaurants[:6]:
-        if restaurant["image_filename"]:
+        if restaurant.get("image_filename"):
             recent_highlights.append(
                 {
                     "type": "restaurant",
                     "id": restaurant["id"],
                     "name": restaurant["name"],
-                    "rating": restaurant["effective_rating"],
-                    "description": restaurant["description"],
-                    "image_filename": restaurant["image_filename"],
-                    "upload_subfolder": get_upload_subfolder()
+                    "rating": restaurant.get("effective_rating"),
+                    "description": restaurant.get("description"),
+                    "image_filename": restaurant.get("image_filename"),
                 }
             )
 
@@ -319,17 +197,15 @@ def index():
 
     map_restaurants = []
     for restaurant in restaurants:
-        if restaurant["latitude"] is not None and restaurant["longitude"] is not None:
+        if restaurant.get("latitude") is not None and restaurant.get("longitude") is not None:
             map_restaurants.append({
                 "id": restaurant["id"],
                 "name": restaurant["name"],
-                "city": restaurant["city"] or "",
-                "state": restaurant["state"] or "",
+                "city": restaurant.get("city", ""),
+                "state": restaurant.get("state", ""),
                 "latitude": restaurant["latitude"],
                 "longitude": restaurant["longitude"]
             })
-
-    conn.close()
 
     return render_template(
         "index.html",
@@ -342,96 +218,52 @@ def index():
 
 @app.route("/restaurants")
 def restaurants_list():
-    q = request.args.get("q", "").strip()
-
-    conn = get_db_connection()
+    q = request.args.get("q", "").strip().lower()
+    restaurants = [build_restaurant_display_data(r) for r in get_restaurants()]
 
     if q:
-        raw_restaurants = conn.execute(
-            """
-            SELECT * FROM restaurants
-            WHERE name LIKE ?
-               OR category LIKE ?
-               OR description LIKE ?
-               OR dishes_tried LIKE ?
-               OR attendees LIKE ?
-               OR visit_date LIKE ?
-               OR city LIKE ?
-               OR state LIKE ?
-            ORDER BY id DESC
-            """,
-            (
-                f"%{q}%",
-                f"%{q}%",
-                f"%{q}%",
-                f"%{q}%",
-                f"%{q}%",
-                f"%{q}%",
-                f"%{q}%",
-                f"%{q}%"
-            )
-        ).fetchall()
-    else:
-        raw_restaurants = conn.execute(
-            "SELECT * FROM restaurants ORDER BY id DESC"
-        ).fetchall()
+        filtered_restaurants = []
+        for restaurant in restaurants:
+            searchable_text = " ".join([
+                restaurant.get("name", ""),
+                restaurant.get("category", ""),
+                restaurant.get("description", ""),
+                restaurant.get("dishes_tried", ""),
+                restaurant.get("attendees", ""),
+                restaurant.get("visit_date", ""),
+                restaurant.get("city", ""),
+                restaurant.get("state", "")
+            ]).lower()
 
-    restaurants = attach_restaurant_display_data(conn, raw_restaurants)
+            food_items = restaurant.get("food_items", [])
+            for item in food_items:
+                searchable_text += " " + item.get("item_name", "").lower()
 
-    conn.close()
+            if q in searchable_text:
+                filtered_restaurants.append(restaurant)
+
+        restaurants = filtered_restaurants
 
     return render_template("restaurants.html", restaurants=restaurants, q=q)
 
 
 @app.route("/recipes")
 def recipes_list():
-    q = request.args.get("q", "").strip()
-
-    conn = get_db_connection()
+    q = request.args.get("q", "").strip().lower()
+    recipes = get_recipes()
 
     if q:
-        recipes = conn.execute(
-            """
-            SELECT
-                recipes.id,
-                recipes.name,
-                recipes.description,
-                recipes.rating,
-                (
-                    SELECT filename
-                    FROM recipe_photos
-                    WHERE recipe_photos.recipe_id = recipes.id
-                    ORDER BY id ASC
-                    LIMIT 1
-                ) AS cover_photo
-            FROM recipes
-            WHERE recipes.name LIKE ?
-               OR recipes.description LIKE ?
-            ORDER BY recipes.id DESC
-            """,
-            (f"%{q}%", f"%{q}%")
-        ).fetchall()
-    else:
-        recipes = conn.execute(
-            """
-            SELECT
-                recipes.id,
-                recipes.name,
-                recipes.description,
-                recipes.rating,
-                (
-                    SELECT filename
-                    FROM recipe_photos
-                    WHERE recipe_photos.recipe_id = recipes.id
-                    ORDER BY id ASC
-                    LIMIT 1
-                ) AS cover_photo
-            FROM recipes
-            ORDER BY recipes.id DESC
-            """
-        ).fetchall()
+        filtered_recipes = []
+        for recipe in recipes:
+            searchable_text = " ".join([
+                recipe.get("name", ""),
+                recipe.get("description", "")
+            ]).lower()
 
-    conn.close()
+            if q in searchable_text:
+                filtered_recipes.append(recipe)
+
+        recipes = filtered_recipes
 
     return render_template("recipes.html", recipes=recipes, q=q)
 
@@ -439,6 +271,9 @@ def recipes_list():
 @app.route("/add_restaurant", methods=["GET", "POST"])
 def add_restaurant():
     if request.method == "POST":
+        restaurants = dict(db.get("restaurants", {}))
+        restaurant_id = db["next_restaurant_id"]
+
         name = request.form.get("name", "").strip()
         category = request.form.get("category", "").strip()
         description = request.form.get("description", "").strip()
@@ -461,29 +296,8 @@ def add_restaurant():
         food_item_names = request.form.getlist("food_item_name[]")
         food_item_ratings = request.form.getlist("food_item_rating[]")
 
-        conn = get_db_connection()
-        cursor = conn.execute(
-            """
-            INSERT INTO restaurants
-            (name, category, description, dishes_tried, attendees, visit_date, rating, image_filename, city, state, latitude, longitude)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """,
-            (
-                name,
-                category,
-                description,
-                dishes_tried,
-                attendees,
-                visit_date,
-                rating,
-                image_filename,
-                city,
-                state,
-                latitude,
-                longitude
-            )
-        )
-        restaurant_id = cursor.lastrowid
+        food_items = []
+        next_food_item_id = 1
 
         for item_name, item_rating in zip(food_item_names, food_item_ratings):
             clean_name = item_name.strip()
@@ -491,16 +305,32 @@ def add_restaurant():
 
             if clean_name:
                 numeric_rating = float(clean_rating) if clean_rating else None
-                conn.execute(
-                    """
-                    INSERT INTO restaurant_food_items (restaurant_id, item_name, item_rating)
-                    VALUES (?, ?, ?)
-                    """,
-                    (restaurant_id, clean_name, numeric_rating)
-                )
+                food_items.append({
+                    "id": next_food_item_id,
+                    "item_name": clean_name,
+                    "item_rating": numeric_rating
+                })
+                next_food_item_id += 1
 
-        conn.commit()
-        conn.close()
+        restaurants[str(restaurant_id)] = {
+            "id": restaurant_id,
+            "name": name,
+            "category": category,
+            "description": description,
+            "dishes_tried": dishes_tried,
+            "attendees": attendees,
+            "visit_date": visit_date,
+            "rating": rating,
+            "image_filename": image_filename,
+            "city": city,
+            "state": state,
+            "latitude": latitude,
+            "longitude": longitude,
+            "food_items": food_items
+        }
+
+        db["restaurants"] = restaurants
+        db["next_restaurant_id"] = restaurant_id + 1
 
         return redirect(url_for("restaurant_detail", id=restaurant_id))
 
@@ -520,36 +350,23 @@ def add_restaurant():
 
 @app.route("/restaurant/<int:id>")
 def restaurant_detail(id):
-    conn = get_db_connection()
-    restaurant_row = conn.execute(
-        "SELECT * FROM restaurants WHERE id = ?",
-        (id,)
-    ).fetchone()
+    restaurants = dict(db.get("restaurants", {}))
+    restaurant = restaurants.get(str(id))
 
-    if not restaurant_row:
-        conn.close()
+    if not restaurant:
         return render_template("restaurant_detail.html", restaurant=None)
 
-    restaurant = attach_restaurant_display_data(conn, [restaurant_row])[0]
-    conn.close()
-
+    restaurant = build_restaurant_display_data(restaurant)
     return render_template("restaurant_detail.html", restaurant=restaurant)
 
 
 @app.route("/edit_restaurant/<int:id>", methods=["GET", "POST"])
 def edit_restaurant(id):
-    conn = get_db_connection()
+    restaurants = dict(db.get("restaurants", {}))
+    restaurant = restaurants.get(str(id))
 
-    restaurant_row = conn.execute(
-        "SELECT * FROM restaurants WHERE id = ?",
-        (id,)
-    ).fetchone()
-
-    if not restaurant_row:
-        conn.close()
+    if not restaurant:
         return redirect(url_for("restaurants_list"))
-
-    food_items = get_food_items_for_restaurant(conn, id)
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
@@ -566,36 +383,19 @@ def edit_restaurant(id):
 
         latitude, longitude = geocode_city_state(city, state)
 
-        image_filename = restaurant_row["image_filename"]
+        image_filename = restaurant.get("image_filename")
         image = request.files.get("image")
         if image and image.filename:
             new_filename = save_uploaded_file(image)
             if new_filename:
-                delete_uploaded_file(restaurant_row["image_filename"])
+                delete_uploaded_file(restaurant.get("image_filename"))
                 image_filename = new_filename
-
-        conn.execute(
-            """
-            UPDATE restaurants
-            SET name = ?, category = ?, description = ?, dishes_tried = ?,
-                attendees = ?, visit_date = ?, rating = ?, image_filename = ?,
-                city = ?, state = ?, latitude = ?, longitude = ?
-            WHERE id = ?
-            """,
-            (
-                name, category, description, dishes_tried, attendees,
-                visit_date, rating, image_filename, city, state,
-                latitude, longitude, id
-            )
-        )
-
-        conn.execute(
-            "DELETE FROM restaurant_food_items WHERE restaurant_id = ?",
-            (id,)
-        )
 
         food_item_names = request.form.getlist("food_item_name[]")
         food_item_ratings = request.form.getlist("food_item_rating[]")
+
+        food_items = []
+        next_food_item_id = 1
 
         for item_name, item_rating in zip(food_item_names, food_item_ratings):
             clean_name = item_name.strip()
@@ -603,26 +403,39 @@ def edit_restaurant(id):
 
             if clean_name:
                 numeric_rating = float(clean_rating) if clean_rating else None
-                conn.execute(
-                    """
-                    INSERT INTO restaurant_food_items (restaurant_id, item_name, item_rating)
-                    VALUES (?, ?, ?)
-                    """,
-                    (id, clean_name, numeric_rating)
-                )
+                food_items.append({
+                    "id": next_food_item_id,
+                    "item_name": clean_name,
+                    "item_rating": numeric_rating
+                })
+                next_food_item_id += 1
 
-        conn.commit()
-        conn.close()
+        restaurants[str(id)] = {
+            "id": id,
+            "name": name,
+            "category": category,
+            "description": description,
+            "dishes_tried": dishes_tried,
+            "attendees": attendees,
+            "visit_date": visit_date,
+            "rating": rating,
+            "image_filename": image_filename,
+            "city": city,
+            "state": state,
+            "latitude": latitude,
+            "longitude": longitude,
+            "food_items": food_items
+        }
 
+        db["restaurants"] = restaurants
         return redirect(url_for("restaurant_detail", id=id))
 
-    restaurant = attach_restaurant_display_data(conn, [restaurant_row])[0]
-    conn.close()
+    restaurant = build_restaurant_display_data(restaurant)
 
     return render_template(
         "edit_restaurant.html",
         restaurant=restaurant,
-        food_items=food_items,
+        food_items=restaurant.get("food_items", []),
         cuisines=[
             "American", "Barbecue", "Breakfast", "Burgers", "Cajun",
             "Caribbean", "Chinese", "Comfort Food", "Deli", "French",
@@ -637,50 +450,47 @@ def edit_restaurant(id):
 
 @app.route("/delete_restaurant/<int:id>", methods=["POST"])
 def delete_restaurant(id):
-    conn = get_db_connection()
-
-    restaurant = conn.execute(
-        "SELECT * FROM restaurants WHERE id = ?",
-        (id,)
-    ).fetchone()
+    restaurants = dict(db.get("restaurants", {}))
+    restaurant = restaurants.get(str(id))
 
     if restaurant:
-        delete_uploaded_file(restaurant["image_filename"])
-        conn.execute("DELETE FROM restaurant_food_items WHERE restaurant_id = ?", (id,))
-        conn.execute("DELETE FROM restaurants WHERE id = ?", (id,))
-        conn.commit()
+        delete_uploaded_file(restaurant.get("image_filename"))
+        del restaurants[str(id)]
+        db["restaurants"] = restaurants
 
-    conn.close()
     return redirect(url_for("restaurants_list"))
 
 
 @app.route("/add_recipe", methods=["GET", "POST"])
 def add_recipe():
     if request.method == "POST":
+        recipes = dict(db.get("recipes", {}))
+        recipe_id = db["next_recipe_id"]
+
         name = request.form.get("name", "").strip()
         description = request.form.get("description", "").strip()
 
         rating_value = request.form.get("rating", "").strip()
         rating = float(rating_value) if rating_value else None
 
-        conn = get_db_connection()
-        cursor = conn.execute(
-            "INSERT INTO recipes (name, description, rating) VALUES (?, ?, ?)",
-            (name, description, rating)
-        )
-        recipe_id = cursor.lastrowid
-
         files = request.files.getlist("images")
+        photo_filenames = []
+
         for file in files:
             filename = save_uploaded_file(file)
             if filename:
-                conn.execute(
-                    "INSERT INTO recipe_photos (recipe_id, filename) VALUES (?, ?)",
-                    (recipe_id, filename)
-                )
+                photo_filenames.append(filename)
 
-        conn.commit()
-        conn.close()
+        recipes[str(recipe_id)] = {
+            "id": recipe_id,
+            "name": name,
+            "description": description,
+            "rating": rating,
+            "photo_filenames": photo_filenames
+        }
+
+        db["recipes"] = recipes
+        db["next_recipe_id"] = recipe_id + 1
 
         return redirect(url_for("recipe_detail", id=recipe_id))
 
@@ -689,40 +499,23 @@ def add_recipe():
 
 @app.route("/recipe/<int:id>")
 def recipe_detail(id):
-    conn = get_db_connection()
+    recipes = dict(db.get("recipes", {}))
+    recipe = recipes.get(str(id))
 
-    recipe = conn.execute(
-        "SELECT * FROM recipes WHERE id = ?",
-        (id,)
-    ).fetchone()
+    if not recipe:
+        return render_template("recipe_detail.html", recipe=None, photos=[])
 
-    photos = conn.execute(
-        "SELECT * FROM recipe_photos WHERE recipe_id = ? ORDER BY id ASC",
-        (id,)
-    ).fetchall()
-
-    conn.close()
-
+    photos = [{"filename": filename} for filename in recipe.get("photo_filenames", [])]
     return render_template("recipe_detail.html", recipe=recipe, photos=photos)
 
 
 @app.route("/edit_recipe/<int:id>", methods=["GET", "POST"])
 def edit_recipe(id):
-    conn = get_db_connection()
-
-    recipe = conn.execute(
-        "SELECT * FROM recipes WHERE id = ?",
-        (id,)
-    ).fetchone()
+    recipes = dict(db.get("recipes", {}))
+    recipe = recipes.get(str(id))
 
     if not recipe:
-        conn.close()
         return redirect(url_for("recipes_list"))
-
-    photos = conn.execute(
-        "SELECT * FROM recipe_photos WHERE recipe_id = ? ORDER BY id ASC",
-        (id,)
-    ).fetchall()
 
     if request.method == "POST":
         name = request.form.get("name", "").strip()
@@ -731,54 +524,44 @@ def edit_recipe(id):
         rating_value = request.form.get("rating", "").strip()
         rating = float(rating_value) if rating_value else None
 
-        conn.execute(
-            """
-            UPDATE recipes
-            SET name = ?, description = ?, rating = ?
-            WHERE id = ?
-            """,
-            (name, description, rating, id)
-        )
+        photo_filenames = list(recipe.get("photo_filenames", []))
 
         files = request.files.getlist("images")
         for file in files:
             filename = save_uploaded_file(file)
             if filename:
-                conn.execute(
-                    "INSERT INTO recipe_photos (recipe_id, filename) VALUES (?, ?)",
-                    (id, filename)
-                )
+                photo_filenames.append(filename)
 
-        conn.commit()
-        conn.close()
+        recipes[str(id)] = {
+            "id": id,
+            "name": name,
+            "description": description,
+            "rating": rating,
+            "photo_filenames": photo_filenames
+        }
 
+        db["recipes"] = recipes
         return redirect(url_for("recipe_detail", id=id))
 
-    conn.close()
+    photos = [{"filename": filename} for filename in recipe.get("photo_filenames", [])]
     return render_template("edit_recipe.html", recipe=recipe, photos=photos)
 
 
 @app.route("/delete_recipe/<int:id>", methods=["POST"])
 def delete_recipe(id):
-    conn = get_db_connection()
+    recipes = dict(db.get("recipes", {}))
+    recipe = recipes.get(str(id))
 
-    photos = conn.execute(
-        "SELECT * FROM recipe_photos WHERE recipe_id = ?",
-        (id,)
-    ).fetchall()
+    if recipe:
+        for filename in recipe.get("photo_filenames", []):
+            delete_uploaded_file(filename)
 
-    for photo in photos:
-        delete_uploaded_file(photo["filename"])
-
-    conn.execute("DELETE FROM recipe_photos WHERE recipe_id = ?", (id,))
-    conn.execute("DELETE FROM recipes WHERE id = ?", (id,))
-    conn.commit()
-    conn.close()
+        del recipes[str(id)]
+        db["recipes"] = recipes
 
     return redirect(url_for("recipes_list"))
 
 
-# THIS LINE IS THE IMPORTANT FIX
 init_db()
 
 if __name__ == "__main__":
