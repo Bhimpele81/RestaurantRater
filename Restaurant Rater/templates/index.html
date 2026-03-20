@@ -162,4 +162,65 @@
         {% endfor %}
     </div>
 </section>
+
+<section class="content-section">
+    <div class="section-title">
+        <h2>Restaurant Map</h2>
+        <p class="muted-text">Locations from your saved restaurants</p>
+    </div>
+
+    {% if map_restaurants and map_restaurants|length > 0 %}
+        <div id="map" style="height: 420px; width: 100%; border-radius: 12px; overflow: hidden; background: #e5e7eb;"></div>
+
+        <link
+            rel="stylesheet"
+            href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        >
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+        <script>
+            const restaurants = {{ map_restaurants | tojson }};
+
+            const validRestaurants = restaurants.filter(function (r) {
+                return r.latitude !== null && r.longitude !== null;
+            });
+
+            if (validRestaurants.length > 0) {
+                const firstRestaurant = validRestaurants[0];
+
+                const map = L.map("map").setView(
+                    [firstRestaurant.latitude, firstRestaurant.longitude],
+                    10
+                );
+
+                L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                    attribution: "&copy; OpenStreetMap contributors"
+                }).addTo(map);
+
+                const bounds = [];
+
+                validRestaurants.forEach(function (r) {
+                    L.marker([r.latitude, r.longitude])
+                        .addTo(map)
+                        .bindPopup(
+                            "<strong>" + r.name + "</strong><br>" +
+                            r.city + ", " + r.state
+                        );
+
+                    bounds.push([r.latitude, r.longitude]);
+                });
+
+                if (bounds.length > 1) {
+                    map.fitBounds(bounds, { padding: [30, 30] });
+                }
+
+                setTimeout(function () {
+                    map.invalidateSize();
+                }, 300);
+            }
+        </script>
+    {% else %}
+        <div class="empty-state">No restaurant locations available yet.</div>
+    {% endif %}
+</section>
 {% endblock %}
