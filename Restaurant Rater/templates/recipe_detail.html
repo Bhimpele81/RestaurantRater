@@ -13,11 +13,19 @@
             {% if photos %}
                 <div style="margin: 18px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
                     {% for photo in photos %}
-                        <img
-                            src="{{ url_for('static', filename='uploads/' + photo.filename) }}"
-                            alt="{{ recipe.name }}"
-                            class="detail-image"
-                        >
+                        {% if photo.image_data %}
+                            <img
+                                src="{{ photo.image_data }}"
+                                alt="{{ recipe.name }}"
+                                class="detail-image"
+                            >
+                        {% elif photo.filename %}
+                            <img
+                                src="{{ url_for('static', filename='uploads/' + photo.filename) }}"
+                                alt="{{ recipe.name }}"
+                                class="detail-image"
+                            >
+                        {% endif %}
                     {% endfor %}
                 </div>
             {% endif %}

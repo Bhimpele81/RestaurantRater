@@ -1,5 +1,7 @@
 import os
 import json
+import base64
+import mimetypes
 import urllib.parse
 import urllib.request
 from flask import Flask, render_template, request, redirect, url_for
@@ -10,7 +12,8 @@ from sqlalchemy import (
     String,
     Float,
     Text,
-    ForeignKey
+    ForeignKey,
+    inspect
 )
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker, scoped_session
 
@@ -50,6 +53,7 @@ class Restaurant(Base):
     visit_date = Column(String(50))
     rating = Column(Float)
     image_filename = Column(String(255))
+    image_data = Column(Text)
     city = Column(String(255))
     state = Column(String(255))
     latitude = Column(Float)
@@ -96,26 +100,33 @@ class RecipePhoto(Base):
     id = Column(Integer, primary_key=True)
     recipe_id = Column(Integer, ForeignKey("recipes.id"), nullable=False)
     filename = Column(String(255), nullable=False)
+    image_data = Column(Text)
 
     recipe = relationship("Recipe", back_populates="photos")
 
 
+def ensure_column(table_name, column_name, column_type):
+    inspector = inspect(engine)
+    columns = [col["name"] for col in inspector.get_columns(table_name)]
+
+    if column_name not in columns:
+        with engine.begin() as conn:
+            conn.exec_driver_sql(
+                f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_type}"
+            )
+
+
 def init_db():
     Base.metadata.create_all(bind=engine)
+    ensure_column("restaurants", "image_data", "TEXT")
+    ensure_column("recipe_photos", "image_data", "TEXT")
 
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def save_uploaded_file(file):
-    if not file or not file.filename:
-        return None
-
-    if not allowed_file(file.filename):
-        return None
-
-    original_name = file.filename
+def build_safe_filename(original_name):
     safe_name = "".join(c for c in original_name if c.isalnum() or c in "._-").strip("._")
 
     if not safe_name:
@@ -134,8 +145,40 @@ def save_uploaded_file(file):
         file_path = os.path.join(UPLOAD_FOLDER, final_name)
         counter += 1
 
-    file.save(file_path)
-    return final_name
+    return final_name, file_path
+
+
+def build_data_url(filename, file_bytes):
+    mime_type = mimetypes.guess_type(filename)[0]
+
+    if not mime_type:
+        extension = filename.rsplit(".", 1)[1].lower() if "." in filename else "jpeg"
+        if extension == "jpg":
+            extension = "jpeg"
+        mime_type = f"image/{extension}"
+
+    encoded = base64.b64encode(file_bytes).decode("utf-8")
+    return f"data:{mime_type};base64,{encoded}"
+
+
+def save_uploaded_image(file):
+    if not file or not file.filename:
+        return None, None
+
+    if not allowed_file(file.filename):
+        return None, None
+
+    final_name, file_path = build_safe_filename(file.filename)
+    file_bytes = file.read()
+
+    if not file_bytes:
+        return None, None
+
+    with open(file_path, "wb") as saved_file:
+        saved_file.write(file_bytes)
+
+    image_data = build_data_url(final_name, file_bytes)
+    return final_name, image_data
 
 
 def delete_uploaded_file(filename):
@@ -210,6 +253,7 @@ def add_restaurant_display_fields(restaurant):
 
 def add_recipe_cover_photo(recipe):
     recipe.cover_photo = recipe.photos[0].filename if recipe.photos else None
+    recipe.cover_photo_data = recipe.photos[0].image_data if recipe.photos else None
     return recipe
 
 
@@ -226,7 +270,7 @@ def index():
     recent_highlights = []
 
     for recipe in recipes[:6]:
-        if recipe.cover_photo:
+        if recipe.cover_photo or recipe.cover_photo_data:
             recent_highlights.append(
                 {
                     "type": "recipe",
@@ -235,11 +279,12 @@ def index():
                     "rating": recipe.rating,
                     "description": recipe.description,
                     "image_filename": recipe.cover_photo,
+                    "image_data": recipe.cover_photo_data,
                 }
             )
 
     for restaurant in restaurants[:6]:
-        if restaurant.image_filename:
+        if restaurant.image_filename or restaurant.image_data:
             recent_highlights.append(
                 {
                     "type": "restaurant",
@@ -248,6 +293,7 @@ def index():
                     "rating": restaurant.effective_rating,
                     "description": restaurant.description,
                     "image_filename": restaurant.image_filename,
+                    "image_data": restaurant.image_data,
                 }
             )
 
@@ -355,9 +401,10 @@ def add_restaurant():
         latitude, longitude = geocode_city_state(city, state)
 
         image_filename = None
+        image_data = None
         image = request.files.get("image")
         if image and image.filename:
-            image_filename = save_uploaded_file(image)
+            image_filename, image_data = save_uploaded_image(image)
 
         restaurant = Restaurant(
             name=name,
@@ -368,6 +415,7 @@ def add_restaurant():
             visit_date=visit_date,
             rating=rating,
             image_filename=image_filename,
+            image_data=image_data,
             city=city,
             state=state,
             latitude=latitude,
@@ -452,10 +500,11 @@ def edit_restaurant(id):
 
         image = request.files.get("image")
         if image and image.filename:
-            new_filename = save_uploaded_file(image)
-            if new_filename:
+            new_filename, new_image_data = save_uploaded_image(image)
+            if new_filename or new_image_data:
                 delete_uploaded_file(restaurant.image_filename)
                 restaurant.image_filename = new_filename
+                restaurant.image_data = new_image_data
 
         restaurant.food_items.clear()
 
@@ -531,9 +580,9 @@ def add_recipe():
 
         files = request.files.getlist("images")
         for file in files:
-            filename = save_uploaded_file(file)
-            if filename:
-                recipe.photos.append(RecipePhoto(filename=filename))
+            filename, image_data = save_uploaded_image(file)
+            if filename or image_data:
+                recipe.photos.append(RecipePhoto(filename=filename or "uploaded_image", image_data=image_data))
 
         db_session.add(recipe)
         db_session.commit()
@@ -577,9 +626,9 @@ def edit_recipe(id):
 
         files = request.files.getlist("images")
         for file in files:
-            filename = save_uploaded_file(file)
-            if filename:
-                recipe.photos.append(RecipePhoto(filename=filename))
+            filename, image_data = save_uploaded_image(file)
+            if filename or image_data:
+                recipe.photos.append(RecipePhoto(filename=filename or "uploaded_image", image_data=image_data))
 
         db_session.commit()
         db_session.close()

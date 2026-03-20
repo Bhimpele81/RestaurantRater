@@ -6,7 +6,15 @@
         {% if restaurant %}
             <h2>{{ restaurant.name }}</h2>
 
-            {% if restaurant.image_filename %}
+            {% if restaurant.image_data %}
+                <div style="margin: 18px 0;">
+                    <img
+                        src="{{ restaurant.image_data }}"
+                        alt="{{ restaurant.name }}"
+                        class="detail-image"
+                    >
+                </div>
+            {% elif restaurant.image_filename %}
                 <div style="margin: 18px 0;">
                     <img
                         src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
