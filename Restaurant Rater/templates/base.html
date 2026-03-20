@@ -10,18 +10,21 @@
 
     <style>
         .site-subtitle {
-            margin: 5px 0 0 0;
-            color: #cbd5e1;
+            margin: 6px 0 0 0;
+            color: #bfdbfe;
+            font-weight: 600;
+            letter-spacing: 0.02em;
         }
 
         .header-nav-row {
-            margin-top: 14px;
+            margin-top: 16px;
         }
 
         .desktop-nav {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
+            align-items: center;
         }
 
         .mobile-menu-wrap {
@@ -29,13 +32,13 @@
         }
 
         .menu-toggle {
-            width: 100%;
-            background: #0f2a44;
+            width: auto;
+            background: rgba(255, 255, 255, 0.12);
             color: white;
-            border: none;
+            border: 1px solid rgba(255, 255, 255, 0.25);
             border-radius: 10px;
-            padding: 12px 16px;
-            font-size: 1rem;
+            padding: 10px 14px;
+            font-size: 1.2rem;
             cursor: pointer;
         }
 
@@ -45,7 +48,7 @@
             background: white;
             border-radius: 12px;
             padding: 10px;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
         }
 
         .mobile-menu.open {
@@ -82,7 +85,6 @@
             <p class="site-subtitle">Himpele Family Favorites</p>
 
             <div class="header-nav-row">
-                <!-- DESKTOP MENU -->
                 <nav class="desktop-nav">
                     <a class="button" href="{{ url_for('index') }}">Home</a>
                     <a class="button" href="{{ url_for('restaurants_list') }}">Restaurants</a>
@@ -91,7 +93,6 @@
                     <a class="button" href="{{ url_for('add_recipe') }}">Add Recipe</a>
                 </nav>
 
-                <!-- MOBILE MENU -->
                 <div class="mobile-menu-wrap">
                     <button class="menu-toggle" type="button" onclick="toggleMobileMenu()">
                         ☰
