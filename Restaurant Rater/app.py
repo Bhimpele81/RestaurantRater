@@ -9,11 +9,25 @@ app = Flask(__name__)
 app.secret_key = "secret"
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DATABASE = os.path.join(BASE_DIR, "restaurant_rater.db")
-UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+
+APP_ENV = os.environ.get("APP_ENV", "dev").lower()
+
+if APP_ENV == "prod":
+    DATABASE = os.path.join(BASE_DIR, "restaurant_rater_prod.db")
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads_prod")
+else:
+    DATABASE = os.path.join(BASE_DIR, "restaurant_rater_dev.db")
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads_dev")
+
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+def get_upload_subfolder():
+    if APP_ENV == "prod":
+        return "uploads_prod"
+    return "uploads_dev"
 
 
 def get_db_connection():
@@ -235,6 +249,14 @@ def attach_restaurant_display_data(conn, restaurants):
     return enriched
 
 
+@app.context_processor
+def inject_app_context():
+    return {
+        "upload_subfolder": get_upload_subfolder(),
+        "app_env": APP_ENV
+    }
+
+
 @app.route("/")
 def index():
     conn = get_db_connection()
@@ -275,6 +297,7 @@ def index():
                     "rating": recipe["rating"],
                     "description": recipe["description"],
                     "image_filename": recipe["cover_photo"],
+                    "upload_subfolder": get_upload_subfolder()
                 }
             )
 
@@ -288,6 +311,7 @@ def index():
                     "rating": restaurant["effective_rating"],
                     "description": restaurant["description"],
                     "image_filename": restaurant["image_filename"],
+                    "upload_subfolder": get_upload_subfolder()
                 }
             )
 
