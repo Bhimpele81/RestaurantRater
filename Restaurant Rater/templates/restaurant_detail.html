@@ -16,8 +16,19 @@
                 </div>
             {% endif %}
 
-            {% if restaurant.rating is not none %}
-                <p><span class="rating-badge">{{ restaurant.rating }}/10</span></p>
+            {% if restaurant.effective_rating is not none %}
+                <p>
+                    <span class="rating-badge">{{ restaurant.effective_rating }}/10</span>
+                </p>
+            {% endif %}
+
+            {% if restaurant.rating_source == "average" and restaurant.average_food_rating is not none %}
+                <p><strong>Overall Rating:</strong> Average of food item ratings</p>
+            {% elif restaurant.rating_source == "manual" and restaurant.rating is not none %}
+                <p><strong>Overall Rating:</strong> Manual override</p>
+                {% if restaurant.average_food_rating is not none %}
+                    <p><strong>Food Item Average:</strong> {{ restaurant.average_food_rating }}/10</p>
+                {% endif %}
             {% endif %}
 
             {% if restaurant.category %}
@@ -39,8 +50,27 @@
                 <p><strong>Who Was There:</strong> {{ restaurant.attendees }}</p>
             {% endif %}
 
+            {% if restaurant.food_items %}
+                <div style="margin-top: 18px;">
+                    <h3>Food Items</h3>
+                    <div class="food-item-list">
+                        {% for item in restaurant.food_items %}
+                            <div class="food-item-card">
+                                <strong>{{ item.item_name }}</strong>
+                                {% if item.item_rating is not none %}
+                                    <span class="food-item-rating">{{ item.item_rating }}/10</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
             {% if restaurant.dishes_tried %}
-                <p><strong>Dishes Tried:</strong> {{ restaurant.dishes_tried }}</p>
+                <div style="margin-top: 18px;">
+                    <h3>Other Dishes / Quick Notes</h3>
+                    <div class="restaurant-notes-box">{{ restaurant.dishes_tried }}</div>
+                </div>
             {% endif %}
 
             {% if restaurant.description %}

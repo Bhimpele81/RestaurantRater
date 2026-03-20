@@ -4,7 +4,7 @@
 <section class="content-section">
     <div class="form-card">
         <h2>Edit Restaurant</h2>
-        <p>Update the restaurant details below.</p>
+        <p>Update restaurant details, food items, and rating behavior.</p>
 
         <form method="POST" enctype="multipart/form-data">
             <label for="name">Restaurant Name</label>
@@ -27,7 +27,7 @@
             <label for="description">Notes</label>
             <textarea id="description" name="description" rows="5">{{ restaurant.description or '' }}</textarea>
 
-            <label for="dishes_tried">Dishes Tried</label>
+            <label for="dishes_tried">Other Dishes / Quick Notes</label>
             <input type="text" id="dishes_tried" name="dishes_tried" value="{{ restaurant.dishes_tried or '' }}">
 
             <label for="attendees">Who Was There</label>
@@ -36,7 +36,51 @@
             <label for="visit_date">Visit Date</label>
             <input type="date" id="visit_date" name="visit_date" value="{{ restaurant.visit_date or '' }}">
 
-            <label for="rating">Rating (1.0 to 10.0)</label>
+            <div style="margin-top: 18px;">
+                <h3 style="margin-bottom: 10px;">Food Items</h3>
+                <p style="margin-top: 0;">Update each food item and rating. The overall rating auto-fills from the average unless you overwrite it.</p>
+
+                <div id="food-items-container">
+                    {% if food_items %}
+                        {% for item in food_items %}
+                            <div class="food-item-row">
+                                <input type="text" name="food_item_name[]" placeholder="Food item name" value="{{ item.item_name }}">
+                                <input
+                                    type="number"
+                                    name="food_item_rating[]"
+                                    min="1"
+                                    max="10"
+                                    step="0.1"
+                                    placeholder="Rating"
+                                    value="{{ item.item_rating if item.item_rating is not none else '' }}"
+                                    oninput="updateOverallRatingFromFoodItems()"
+                                >
+                                <button type="button" class="button remove-food-item-button" onclick="removeFoodItemRow(this)">Remove</button>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="food-item-row">
+                            <input type="text" name="food_item_name[]" placeholder="Food item name">
+                            <input
+                                type="number"
+                                name="food_item_rating[]"
+                                min="1"
+                                max="10"
+                                step="0.1"
+                                placeholder="Rating"
+                                oninput="updateOverallRatingFromFoodItems()"
+                            >
+                            <button type="button" class="button remove-food-item-button" onclick="removeFoodItemRow(this)">Remove</button>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <button type="button" onclick="addFoodItemRow()">Add Another Food Item</button>
+                </div>
+            </div>
+
+            <label for="rating" style="margin-top: 20px;">Overall Rating</label>
             <input
                 type="number"
                 id="rating"
@@ -45,8 +89,18 @@
                 max="10"
                 step="0.1"
                 value="{{ restaurant.rating if restaurant.rating is not none else '' }}"
-                required
+                placeholder="Auto-filled from food ratings, but you can change it"
+                oninput="handleOverallRatingManualInput()"
             >
+
+            {% if restaurant.average_food_rating is not none %}
+                <p style="margin-top: 8px;">Current food item average: {{ restaurant.average_food_rating }}/10</p>
+            {% endif %}
+
+            <p style="margin-top: 8px;">
+                This field auto-fills with the average food rating. You can overwrite it manually.
+                If you clear it, the average will appear again.
+            </p>
 
             {% if restaurant.image_filename %}
                 <div style="margin-top: 14px;">
@@ -68,4 +122,102 @@
         </form>
     </div>
 </section>
+
+<script>
+let overallRatingManuallyEdited = {{ 'true' if restaurant.rating is not none else 'false' }};
+
+function getFoodRatingInputs() {
+    return document.querySelectorAll('input[name="food_item_rating[]"]');
+}
+
+function calculateAverageFoodRating() {
+    const inputs = getFoodRatingInputs();
+    const ratings = [];
+
+    inputs.forEach(function(input) {
+        const value = input.value.trim();
+        if (value !== "") {
+            const numberValue = parseFloat(value);
+            if (!isNaN(numberValue)) {
+                ratings.push(numberValue);
+            }
+        }
+    });
+
+    if (ratings.length === 0) {
+        return "";
+    }
+
+    const total = ratings.reduce(function(sum, rating) {
+        return sum + rating;
+    }, 0);
+
+    return (total / ratings.length).toFixed(1);
+}
+
+function updateOverallRatingFromFoodItems() {
+    const overallField = document.getElementById("rating");
+
+    if (!overallRatingManuallyEdited || overallField.value.trim() === "") {
+        const average = calculateAverageFoodRating();
+        overallField.value = average;
+    }
+}
+
+function handleOverallRatingManualInput() {
+    const overallField = document.getElementById("rating");
+
+    if (overallField.value.trim() === "") {
+        overallRatingManuallyEdited = false;
+        updateOverallRatingFromFoodItems();
+    } else {
+        overallRatingManuallyEdited = true;
+    }
+}
+
+function addFoodItemRow(itemName = "", itemRating = "") {
+    const container = document.getElementById("food-items-container");
+
+    const row = document.createElement("div");
+    row.className = "food-item-row";
+
+    row.innerHTML = `
+        <input type="text" name="food_item_name[]" placeholder="Food item name" value="${itemName}">
+        <input
+            type="number"
+            name="food_item_rating[]"
+            min="1"
+            max="10"
+            step="0.1"
+            placeholder="Rating"
+            value="${itemRating}"
+            oninput="updateOverallRatingFromFoodItems()"
+        >
+        <button type="button" class="button remove-food-item-button" onclick="removeFoodItemRow(this)">Remove</button>
+    `;
+
+    container.appendChild(row);
+    updateOverallRatingFromFoodItems();
+}
+
+function removeFoodItemRow(button) {
+    const container = document.getElementById("food-items-container");
+    const rows = container.getElementsByClassName("food-item-row");
+
+    if (rows.length > 1) {
+        button.parentElement.remove();
+    } else {
+        const inputs = rows[0].querySelectorAll("input");
+        inputs.forEach(function(input) {
+            input.value = "";
+        });
+    }
+
+    updateOverallRatingFromFoodItems();
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    updateOverallRatingFromFoodItems();
+});
+</script>
 {% endblock %}
