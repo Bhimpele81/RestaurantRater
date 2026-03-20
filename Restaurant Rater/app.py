@@ -507,37 +507,13 @@ def add_restaurant():
     return render_template(
         "add_restaurant.html",
         cuisines=[
-            "American",
-            "Barbecue",
-            "Breakfast",
-            "Burgers",
-            "Cajun",
-            "Caribbean",
-            "Chinese",
-            "Comfort Food",
-            "Deli",
-            "French",
-            "German",
-            "Greek",
-            "Hawaiian",
-            "Indian",
-            "Italian",
-            "Japanese",
-            "Korean",
-            "Mediterranean",
-            "Mexican",
-            "Middle Eastern",
-            "Pizza",
-            "Seafood",
-            "Soul Food",
-            "Southern",
-            "Spanish",
-            "Steakhouse",
-            "Sushi",
-            "Thai",
-            "Turkish",
-            "Vietnamese",
-            "Other"
+            "American", "Barbecue", "Breakfast", "Burgers", "Cajun",
+            "Caribbean", "Chinese", "Comfort Food", "Deli", "French",
+            "German", "Greek", "Hawaiian", "Indian", "Italian",
+            "Japanese", "Korean", "Mediterranean", "Mexican",
+            "Middle Eastern", "Pizza", "Seafood", "Soul Food",
+            "Southern", "Spanish", "Steakhouse", "Sushi", "Thai",
+            "Turkish", "Vietnamese", "Other"
         ]
     )
 
@@ -601,34 +577,15 @@ def edit_restaurant(id):
         conn.execute(
             """
             UPDATE restaurants
-            SET name = ?,
-                category = ?,
-                description = ?,
-                dishes_tried = ?,
-                attendees = ?,
-                visit_date = ?,
-                rating = ?,
-                image_filename = ?,
-                city = ?,
-                state = ?,
-                latitude = ?,
-                longitude = ?
+            SET name = ?, category = ?, description = ?, dishes_tried = ?,
+                attendees = ?, visit_date = ?, rating = ?, image_filename = ?,
+                city = ?, state = ?, latitude = ?, longitude = ?
             WHERE id = ?
             """,
             (
-                name,
-                category,
-                description,
-                dishes_tried,
-                attendees,
-                visit_date,
-                rating,
-                image_filename,
-                city,
-                state,
-                latitude,
-                longitude,
-                id
+                name, category, description, dishes_tried, attendees,
+                visit_date, rating, image_filename, city, state,
+                latitude, longitude, id
             )
         )
 
@@ -667,37 +624,13 @@ def edit_restaurant(id):
         restaurant=restaurant,
         food_items=food_items,
         cuisines=[
-            "American",
-            "Barbecue",
-            "Breakfast",
-            "Burgers",
-            "Cajun",
-            "Caribbean",
-            "Chinese",
-            "Comfort Food",
-            "Deli",
-            "French",
-            "German",
-            "Greek",
-            "Hawaiian",
-            "Indian",
-            "Italian",
-            "Japanese",
-            "Korean",
-            "Mediterranean",
-            "Mexican",
-            "Middle Eastern",
-            "Pizza",
-            "Seafood",
-            "Soul Food",
-            "Southern",
-            "Spanish",
-            "Steakhouse",
-            "Sushi",
-            "Thai",
-            "Turkish",
-            "Vietnamese",
-            "Other"
+            "American", "Barbecue", "Breakfast", "Burgers", "Cajun",
+            "Caribbean", "Chinese", "Comfort Food", "Deli", "French",
+            "German", "Greek", "Hawaiian", "Indian", "Italian",
+            "Japanese", "Korean", "Mediterranean", "Mexican",
+            "Middle Eastern", "Pizza", "Seafood", "Soul Food",
+            "Southern", "Spanish", "Steakhouse", "Sushi", "Thai",
+            "Turkish", "Vietnamese", "Other"
         ]
     )
 
@@ -845,6 +778,8 @@ def delete_recipe(id):
     return redirect(url_for("recipes_list"))
 
 
+# THIS LINE IS THE IMPORTANT FIX
+init_db()
+
 if __name__ == "__main__":
-    init_db()
     app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=True)
