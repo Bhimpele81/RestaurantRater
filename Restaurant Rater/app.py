@@ -133,6 +133,10 @@ def ensure_column(table_name, column_name, column_type):
 def init_db():
     Base.metadata.create_all(bind=engine)
     ensure_column("restaurants", "image_data", "TEXT")
+    ensure_column("restaurants", "city", "VARCHAR(255)")
+    ensure_column("restaurants", "state", "VARCHAR(255)")
+    ensure_column("restaurants", "latitude", "FLOAT")
+    ensure_column("restaurants", "longitude", "FLOAT")
     ensure_column("recipe_photos", "image_data", "TEXT")
 
 
