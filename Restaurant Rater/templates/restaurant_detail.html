@@ -53,7 +53,14 @@
             {% endif %}
 
             {% if restaurant.visit_date %}
-                <p><strong>Visit Date:</strong> {{ restaurant.visit_date }}</p>
+                <p><strong>Visit Date:</strong>
+    {% set parts = restaurant.visit_date.split('-') %}
+    {% if parts|length == 3 %}
+        {{ parts[2] }}/{{ parts[1] }}/{{ parts[0][2:] }}
+    {% else %}
+        {{ restaurant.visit_date }}
+    {% endif %}
+</p>
             {% endif %}
 
             {% if restaurant.attendees %}
