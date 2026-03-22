@@ -15,12 +15,14 @@
                                 src="{{ photo.image_data }}"
                                 alt="{{ recipe.name }}"
                                 class="detail-image"
+                                style="width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px;"
                             >
                         {% else %}
                             <img
                                 src="{{ url_for('static', filename='uploads/' + photo.filename) }}"
                                 alt="{{ recipe.name }}"
                                 class="detail-image"
+                                style="width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px;"
                             >
                         {% endif %}
                     {% endfor %}
