@@ -2,54 +2,62 @@
 
 {% block content %}
 <section class="content-section">
-    <div class="detail-card">
-        {% if recipe %}
-            <h2>{{ recipe.name }}</h2>
+    <div class="form-card">
+        <h2>Edit Recipe</h2>
 
-            {% if recipe.rating is not none %}
-                <p><span class="rating-badge">{{ recipe.rating }}/10</span></p>
-            {% endif %}
+        <form method="POST" enctype="multipart/form-data">
+            <label for="name">Recipe Name</label>
+            <input type="text" id="name" name="name" value="{{ recipe.name }}" required>
+
+            <label for="rating">Rating (1–10)</label>
+            <input
+                type="number"
+                id="rating"
+                name="rating"
+                min="1"
+                max="10"
+                step="0.1"
+                value="{{ recipe.rating if recipe.rating is not none else '' }}"
+                placeholder="e.g. 8.5"
+            >
+
+            <label for="description">Recipe / Ingredients</label>
+            <textarea id="description" name="description" rows="12" placeholder="Enter each ingredient or step on its own line">{{ recipe.description or '' }}</textarea>
 
             {% if photos %}
-                <div style="margin: 18px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-                    {% for photo in photos %}
-                        {% if photo.image_data %}
-                            <img
-                                src="{{ photo.image_data }}"
-                                alt="{{ recipe.name }}"
-                                class="detail-image"
-                            >
-                        {% else %}
-                            <img
-                                src="{{ url_for('static', filename='uploads/' + photo.filename) }}"
-                                alt="{{ recipe.name }}"
-                                class="detail-image"
-                            >
-                        {% endif %}
-                    {% endfor %}
+                <div style="margin-top: 14px;">
+                    <p><strong>Current Photos:</strong></p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 8px;">
+                        {% for photo in photos %}
+                            {% if photo.image_data %}
+                                <img src="{{ photo.image_data }}" alt="{{ recipe.name }}"
+                                    style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px;">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="{{ recipe.name }}"
+                                    style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px;">
+                            {% endif %}
+                        {% endfor %}
+                    </div>
                 </div>
             {% endif %}
 
-            {% if recipe.description %}
-                <div style="margin-top: 18px;">
-                    <h3>Recipe</h3>
-                    <div class="recipe-text-box">{{ recipe.description }}</div>
-                </div>
-            {% endif %}
+            <label for="images" style="margin-top: 16px;">Add More Photos</label>
+            <input type="file" id="images" name="images" accept="image/*" multiple>
 
-            <div style="margin-top: 20px;">
-                <a class="button" href="{{ url_for('recipes_list') }}">Back to Recipes</a>
-                <a class="button" href="{{ url_for('edit_recipe', id=recipe.id) }}">Edit Recipe</a>
+            <div style="margin-top: 18px;">
+                <button type="submit" class="button">Update Recipe</button>
             </div>
+        </form>
 
-            <form method="POST" action="{{ url_for('delete_recipe', id=recipe.id) }}" style="margin-top: 12px;">
-                <button type="submit" onclick="return confirm('Delete this recipe?');">Delete Recipe</button>
-            </form>
-        {% else %}
-            <div class="empty-state">
-                Recipe not found.
-            </div>
-        {% endif %}
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+            <a class="button" href="{{ url_for('recipe_detail', id=recipe.id) }}">Back to Recipe</a>
+            <a class="button" href="{{ url_for('recipes_list') }}">Back to Recipes</a>
+        </div>
+
+        <form method="POST" action="{{ url_for('delete_recipe', id=recipe.id) }}" style="margin-top: 12px;">
+            <button type="submit" class="button" style="background-color: #ef4444; border-color: #ef4444;" onclick="return confirm('Delete this recipe?');">Delete Recipe</button>
+        </form>
+
     </div>
 </section>
 {% endblock %}
