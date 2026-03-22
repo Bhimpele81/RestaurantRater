@@ -32,10 +32,10 @@
                             <div style="position: relative;">
                                 {% if photo.image_data %}
                                     <img src="{{ photo.image_data }}" alt="{{ recipe.name }}"
-                                        style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px;">
+                                        style="width: 100%; max-height: 150px; object-fit: contain; border-radius: 10px;"
                                 {% else %}
                                     <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="{{ recipe.name }}"
-                                        style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px;">
+                                        style="width: 100%; max-height: 150px; object-fit: contain; border-radius: 10px;"
                                 {% endif %}
                                 <form method="POST" action="{{ url_for('delete_recipe_photo', photo_id=photo.id) }}" style="margin-top: 6px;">
                                     <button type="submit" class="button" style="background-color: #ef4444; border-color: #ef4444; width: 100%; font-size: 0.8rem;" onclick="return confirm(`Delete this photo?`);">Delete Photo</button>
