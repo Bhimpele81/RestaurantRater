@@ -119,9 +119,9 @@
         {% for recipe in recipes %}
         <div class="card">
             {% if recipe.cover_photo_data %}
-            <img src="{{ recipe.cover_photo_data }}" alt="{{ recipe.name }}">
+            style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px;"
             {% elif recipe.cover_photo %}
-            <img src="{{ url_for('static', filename='uploads/' + recipe.cover_photo) }}" alt="{{ recipe.name }}">
+            style="width: 100%; height: 200px; object-fit: cover; border-radius: 12px;"
             {% endif %}
 
             <h3>{{ recipe.name }}</h3>
