@@ -1,12 +1,10 @@
 {% extends "base.html" %}
-
 {% block content %}
 <section class="content-section">
     <div class="section-title">
         <h2>Recipes</h2>
         <p class="muted-text">Browse and search past recipe posts</p>
     </div>
-
     <form method="GET" action="{{ url_for('recipes_list') }}" style="margin-bottom: 24px; display: flex; gap: 10px; flex-wrap: wrap;">
         <input
             type="text"
@@ -17,7 +15,6 @@
         >
         <button type="submit" class="button">Search</button>
     </form>
-
     {% if recipes %}
         <div class="card-grid">
             {% for recipe in recipes %}
@@ -33,17 +30,13 @@
                             alt="{{ recipe.name }}"
                         >
                     {% endif %}
-
                     <h3>{{ recipe.name }}</h3>
-
                     {% if recipe.rating is not none %}
                         <div class="rating-badge">{{ recipe.rating }}/10</div>
                     {% endif %}
-
                     {% if recipe.description %}
-                        <p>{{ recipe.description }}</p>
+                        <p>{{ recipe.description.splitlines()[0][:80] }}{% if recipe.description.splitlines()[0]|length > 80 %}...{% endif %}</p>
                     {% endif %}
-
                     <a class="button" href="{{ url_for('recipe_detail', id=recipe.id) }}">View Recipe</a>
                 </div>
             {% endfor %}
@@ -53,3 +46,8 @@
     {% endif %}
 </section>
 {% endblock %}
+```
+
+The key change is this line:
+```
+{{ recipe.description.splitlines()[0][:80] }}{% if recipe.description.splitlines()[0]|length > 80 %}...{% endif %}
