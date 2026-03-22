@@ -20,9 +20,9 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker, scoped_
 app = Flask(**name**)
 app.secret_key = "secret"
 
-@app.route(”/healthz”)
+@app.route("/healthz")
 def healthz():
-return “OK”, 200
+    return "OK", 200
 
 BASE_DIR = os.path.abspath(os.path.dirname(**file**))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, “static”, “uploads”)
