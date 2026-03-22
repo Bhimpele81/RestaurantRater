@@ -34,9 +34,6 @@
                     {% if recipe.rating is not none %}
                         <div class="rating-badge">{{ recipe.rating }}/10</div>
                     {% endif %}
-                    {% if recipe.description %}
-                        <p>{{ recipe.description.splitlines()[0][:80] }}{% if recipe.description.splitlines()[0]|length > 80 %}...{% endif %}</p>
-                    {% endif %}
                     <a class="button" href="{{ url_for('recipe_detail', id=recipe.id) }}">View Recipe</a>
                 </div>
             {% endfor %}
@@ -46,8 +43,3 @@
     {% endif %}
 </section>
 {% endblock %}
-```
-
-The key change is this line:
-```
-{{ recipe.description.splitlines()[0][:80] }}{% if recipe.description.splitlines()[0]|length > 80 %}...{% endif %}
