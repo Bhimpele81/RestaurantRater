@@ -1,57 +1,31 @@
 {% extends "base.html" %}
+
 {% block content %}
 <section class="content-section">
     <div class="detail-card">
-        {% if recipe %}
-            <h2>{{ recipe.name }}</h2>
-            {% if recipe.rating is not none %}
-                <p><span class="rating-badge">{{ recipe.rating }}/10</span></p>
-            {% endif %}
-            {% if photos %}
-                <div style="margin: 18px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-                    {% for photo in photos %}
-                        {% if photo.image_data %}
-                            <img
-                                src="{{ photo.image_data }}"
-                                alt="{{ recipe.name }}"
-                                class="detail-image"
-                                style="width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px;"
-                            >
-                        {% else %}
-                            <img
-                                src="{{ url_for('static', filename='uploads/' + photo.filename) }}"
-                                alt="{{ recipe.name }}"
-                                class="detail-image"
-                                style="width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px;"
-                            >
-                        {% endif %}
-                    {% endfor %}
+        {% if restaurant %}
+            <h2>{{ restaurant.name }}</h2>
+
+            {% if restaurant.image_data %}
+                <div style="margin: 18px 0;">
+                    <img
+                        src="{{ restaurant.image_data }}"
+                        alt="{{ restaurant.name }}"
+                        class="detail-image"
+                        style="width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px;"
+                    >
+                </div>
+            {% elif restaurant.image_filename %}
+                <div style="margin: 18px 0;">
+                    <img
+                        src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
+                        alt="{{ restaurant.name }}"
+                        class="detail-image"
+                        style="width: 100%; max-height: 320px; object-fit: cover; border-radius: 12px;"
+                    >
                 </div>
             {% endif %}
-            {% if recipe.description %}
-                <div style="margin-top: 18px;">
-                    <h3>Recipe</h3>
-                    <ul style="margin-top: 10px; padding-left: 20px; line-height: 2;">
-                        {% for line in recipe.description.splitlines() %}
-                            {% if line.strip() %}
-                                <li>{{ line.strip() }}</li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                </div>
-            {% endif %}
-            <div style="margin-top: 20px; display: flex; gap: 12px;">
-                <a class="button" href="{{ url_for('recipes_list') }}">Back to Recipes</a>
-                <a class="button" href="{{ url_for('edit_recipe', id=recipe.id) }}">Edit Recipe</a>
-            </div>
-            <form method="POST" action="{{ url_for('delete_recipe', id=recipe.id) }}" style="margin-top: 12px;">
-                <button type="submit" class="button" style="background-color: #ef4444; border-color: #ef4444;" onclick="return confirm('Delete this recipe?');">Delete Recipe</button>
-            </form>
-        {% else %}
-            <div class="empty-state">
-                Recipe not found.
-            </div>
-        {% endif %}
-    </div>
-</section>
-{% endblock %}
+
+            {% if restaurant.effective_rating is not none %}
+                <p>
+                    <span class="rating-badge">{{ restaurant.effective_rating }}/10
