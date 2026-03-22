@@ -1,21 +1,17 @@
 {% extends "base.html" %}
-
 {% block content %}
 <section class="content-section">
     <div class="section-title">
         <h2>Restaurants</h2>
         <p class="muted-text">Browse and search past restaurant visits</p>
     </div>
-
     <form method="GET" action="{{ url_for('restaurants_list') }}" style="margin-bottom: 24px;">
         <input type="text" name="q" value="{{ q }}" placeholder="Search restaurants">
         <button type="submit" class="button">Search</button>
     </form>
-
     {% if restaurants %}
         {% for restaurant in restaurants %}
             <div class="card">
-
                 {% if restaurant.image_data %}
                     <img
                         src="{{ restaurant.image_data }}"
@@ -27,23 +23,27 @@
                         alt="{{ restaurant.name }}"
                     >
                 {% endif %}
-
                 <h3>{{ restaurant.name }}</h3>
-
                 {% if restaurant.effective_rating %}
                     <p class="rating-badge">{{ restaurant.effective_rating }}/10</p>
                 {% endif %}
-
                 <p><strong>Cuisine:</strong> {{ restaurant.category }}</p>
-
                 {% if restaurant.city %}
                     <p><strong>Location:</strong> {{ restaurant.city }}, {{ restaurant.state }}</p>
                 {% endif %}
-
+                {% if restaurant.visit_date %}
+                    <p><strong>Date:</strong>
+                        {% set parts = restaurant.visit_date.split('-') %}
+                        {% if parts|length == 3 %}
+                            {{ parts[2] }}/{{ parts[1] }}/{{ parts[0][2:] }}
+                        {% else %}
+                            {{ restaurant.visit_date }}
+                        {% endif %}
+                    </p>
+                {% endif %}
                 <a class="button" href="{{ url_for('restaurant_detail', id=restaurant.id) }}">
                     View Details
                 </a>
-
             </div>
         {% endfor %}
     {% else %}
@@ -51,4 +51,3 @@
     {% endif %}
 </section>
 {% endblock %}
-
