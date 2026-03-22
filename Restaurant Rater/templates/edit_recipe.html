@@ -29,13 +29,18 @@
                     <p><strong>Current Photos:</strong></p>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 8px;">
                         {% for photo in photos %}
-                            {% if photo.image_data %}
-                                <img src="{{ photo.image_data }}" alt="{{ recipe.name }}"
-                                    style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px;">
-                            {% else %}
-                                <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="{{ recipe.name }}"
-                                    style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 10px;">
-                            {% endif %}
+                            <div style="position: relative;">
+                                {% if photo.image_data %}
+                                    <img src="{{ photo.image_data }}" alt="{{ recipe.name }}"
+                                        style="width: 100%; max-height: 150px; object-fit: contain; border-radius: 10px;"
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="{{ recipe.name }}"
+                                        style="width: 100%; max-height: 150px; object-fit: contain; border-radius: 10px;"
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('delete_recipe_photo', photo_id=photo.id) }}" style="margin-top: 6px;">
+                                    <button type="submit" class="button" style="background-color: #ef4444; border-color: #ef4444; width: 100%; font-size: 0.8rem;" onclick="return confirm(`Delete this photo?`);">Delete Photo</button>
+                                </form>
+                            </div>
                         {% endfor %}
                     </div>
                 </div>
@@ -55,7 +60,7 @@
         </div>
 
         <form method="POST" action="{{ url_for('delete_recipe', id=recipe.id) }}" style="margin-top: 12px;">
-            <button type="submit" class="button" style="background-color: #ef4444; border-color: #ef4444;" onclick="return confirm('Delete this recipe?');">Delete Recipe</button>
+            <button type="submit" class="button" style="background-color: #ef4444; border-color: #ef4444;" onclick="return confirm(`Delete this recipe?`);">Delete Recipe</button>
         </form>
 
     </div>

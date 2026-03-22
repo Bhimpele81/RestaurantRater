@@ -673,6 +673,23 @@ def delete_recipe(id):
     return redirect(url_for("recipes_list"))
 
 
+@app.route("/delete_recipe_photo/<int:photo_id>", methods=["POST"])
+def delete_recipe_photo(photo_id):
+    db_session = SessionLocal()
+    photo = db_session.get(RecipePhoto, photo_id)
+
+    if photo:
+        recipe_id = photo.recipe_id
+        delete_uploaded_file(photo.filename)
+        db_session.delete(photo)
+        db_session.commit()
+        db_session.close()
+        return redirect(url_for("edit_recipe", id=recipe_id))
+
+    db_session.close()
+    return redirect(url_for("recipes_list"))
+
+
 init_db()
 
 if __name__ == "__main__":
