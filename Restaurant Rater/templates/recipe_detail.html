@@ -3,51 +3,102 @@
 {% block content %}
 <section class="content-section">
     <div class="detail-card">
-        {% if recipe %}
-            <h2>{{ recipe.name }}</h2>
+        {% if restaurant %}
+            <h2>{{ restaurant.name }}</h2>
 
-            {% if recipe.rating is not none %}
-                <p><span class="rating-badge">{{ recipe.rating }}/10</span></p>
-            {% endif %}
-
-            {% if photos %}
-                <div style="margin: 18px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
-                    {% for photo in photos %}
-                        {% if photo.image_data %}
-                            <img
-                                src="{{ photo.image_data }}"
-                                alt="{{ recipe.name }}"
-                                class="detail-image"
-                            >
-                        {% elif photo.filename %}
-                            <img
-                                src="{{ url_for('static', filename='uploads/' + photo.filename) }}"
-                                alt="{{ recipe.name }}"
-                                class="detail-image"
-                            >
-                        {% endif %}
-                    {% endfor %}
+            {% if restaurant.image_data %}
+                <div style="margin: 18px 0;">
+                    <img
+                        src="{{ restaurant.image_data }}"
+                        alt="{{ restaurant.name }}"
+                        class="detail-image"
+                    >
+                </div>
+            {% elif restaurant.image_filename %}
+                <div style="margin: 18px 0;">
+                    <img
+                        src="{{ url_for('static', filename='uploads/' + restaurant.image_filename) }}"
+                        alt="{{ restaurant.name }}"
+                        class="detail-image"
+                    >
                 </div>
             {% endif %}
 
-            {% if recipe.description %}
+            {% if restaurant.effective_rating is not none %}
+                <p>
+                    <span class="rating-badge">{{ restaurant.effective_rating }}/10</span>
+                </p>
+            {% endif %}
+
+            {% if restaurant.rating_source == "average" and restaurant.average_food_rating is not none %}
+                <p><strong>Overall Rating:</strong> Average of food item ratings</p>
+            {% elif restaurant.rating_source == "manual" and restaurant.rating is not none %}
+                <p><strong>Overall Rating:</strong> Manual override</p>
+                {% if restaurant.average_food_rating is not none %}
+                    <p><strong>Food Item Average:</strong> {{ restaurant.average_food_rating }}/10</p>
+                {% endif %}
+            {% endif %}
+
+            {% if restaurant.category %}
+                <p><strong>Cuisine:</strong> {{ restaurant.category }}</p>
+            {% endif %}
+
+            {% if restaurant.city or restaurant.state %}
+                <p>
+                    <strong>Location:</strong>
+                    {{ restaurant.city }}{% if restaurant.city and restaurant.state %}, {% endif %}{{ restaurant.state }}
+                </p>
+            {% endif %}
+
+            {% if restaurant.visit_date %}
+                <p><strong>Visit Date:</strong> {{ restaurant.visit_date }}</p>
+            {% endif %}
+
+            {% if restaurant.attendees %}
+                <p><strong>Who Was There:</strong> {{ restaurant.attendees }}</p>
+            {% endif %}
+
+            {% if restaurant.food_items %}
                 <div style="margin-top: 18px;">
-                    <h3>Recipe</h3>
-                    <div class="recipe-text-box">{{ recipe.description }}</div>
+                    <h3>Food Items</h3>
+                    <div class="food-item-list">
+                        {% for item in restaurant.food_items %}
+                            <div class="food-item-card">
+                                <strong>{{ item.item_name }}</strong>
+                                {% if item.item_rating is not none %}
+                                    <span class="food-item-rating">{{ item.item_rating }}/10</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
                 </div>
             {% endif %}
 
-            <div style="margin-top: 20px;">
-                <a class="button" href="{{ url_for('recipes_list') }}">Back to Recipes</a>
-                <a class="button" href="{{ url_for('edit_recipe', id=recipe.id) }}">Edit Recipe</a>
+            {% if restaurant.dishes_tried %}
+                <div style="margin-top: 18px;">
+                    <h3>Other Dishes / Quick Notes</h3>
+                    <div class="restaurant-notes-box">{{ restaurant.dishes_tried }}</div>
+                </div>
+            {% endif %}
+
+            {% if restaurant.description %}
+                <div style="margin-top: 18px;">
+                    <h3>Notes</h3>
+                    <div class="restaurant-notes-box">{{ restaurant.description }}</div>
+                </div>
+            {% endif %}
+
+            <div style="margin-top: 20px; display: flex; gap: 12px;">
+                <a class="button" href="{{ url_for('restaurants_list') }}">Back to Restaurants</a>
+                <a class="button" href="{{ url_for('edit_restaurant', id=restaurant.id) }}">Edit Restaurant</a>
             </div>
 
-            <form method="POST" action="{{ url_for('delete_recipe', id=recipe.id) }}" style="margin-top: 12px;">
-                <button type="submit" onclick="return confirm('Delete this recipe?');">Delete Recipe</button>
+            <form method="POST" action="{{ url_for('delete_restaurant', id=restaurant.id) }}" style="margin-top: 12px;">
+                <button type="submit" class="button" style="background-color: #ef4444; border-color: #ef4444;" onclick="return confirm('Delete this restaurant?');">Delete Restaurant</button>
             </form>
         {% else %}
             <div class="empty-state">
-                Recipe not found.
+                Restaurant not found.
             </div>
         {% endif %}
     </div>
