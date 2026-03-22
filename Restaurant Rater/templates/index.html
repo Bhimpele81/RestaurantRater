@@ -203,4 +203,8 @@
     });
 
     if (bounds.length > 1) {
-        map.fitBounds
+        map.fitBounds(bounds, { padding: [30, 30] });
+    }
+</script>
+{% endif %}
+{% endblock %}
