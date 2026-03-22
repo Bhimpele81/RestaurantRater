@@ -18,7 +18,7 @@ inspect
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker, scoped_session
 
 app = Flask(**name**)
-app.secret_key = “secret”
+app.secret_key = "secret"
 
 @app.route(”/healthz”)
 def healthz():
