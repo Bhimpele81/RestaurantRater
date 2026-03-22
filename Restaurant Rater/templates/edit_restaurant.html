@@ -76,7 +76,7 @@
                 </div>
 
                 <div style="margin-top: 10px;">
-                    <button type="button" onclick="addFoodItemRow()">Add Another Food Item</button>
+                    <button type="button" class="button" onclick="addFoodItemRow()">Add Another Food Item</button>
                 </div>
             </div>
 
@@ -125,17 +125,17 @@
             <input type="file" id="image" name="image" accept="image/*">
 
             <div style="margin-top: 18px;">
-                <button type="submit">Update Restaurant</button>
+                <button type="submit" class="button">Update Restaurant</button>
             </div>
         </form>
 
-        <div style="margin-top: 20px;">
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
             <a class="button" href="{{ url_for('restaurant_detail', id=restaurant.id) }}">Back to Restaurant</a>
             <a class="button" href="{{ url_for('restaurants_list') }}">Back to Restaurants</a>
         </div>
 
         <form method="POST" action="{{ url_for('delete_restaurant', id=restaurant.id) }}" style="margin-top: 12px;">
-            <button type="submit" onclick="return confirm('Delete this restaurant?');">Delete Restaurant</button>
+            <button type="submit" class="button" style="background-color: #ef4444; border-color: #ef4444;" onclick="return confirm('Delete this restaurant?');">Delete Restaurant</button>
         </form>
 
     </div>
@@ -238,5 +238,4 @@ document.addEventListener("DOMContentLoaded", function() {
     updateOverallRatingFromFoodItems();
 });
 </script>
-
 {% endblock %}
