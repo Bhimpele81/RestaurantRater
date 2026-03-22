@@ -1,32 +1,26 @@
 {% extends "base.html" %}
-
 {% block content %}
 <section class="content-section">
     <div class="form-card">
         <h2>Add Recipe</h2>
         <p>Save a family favorite, paste the full recipe, and add photos.</p>
-
         <form method="POST" enctype="multipart/form-data">
             <label for="name">Recipe Name</label>
             <input type="text" id="name" name="name" required>
-
             <label for="description">Recipe / Notes</label>
             <textarea
                 id="description"
                 name="description"
                 rows="14"
                 placeholder="Paste ingredients and instructions here...
-
 Example:
 2 cups flour
 1 cup sugar
 2 eggs
-
 Mix well.
 Bake at 350°F for 25 minutes."
                 required
             ></textarea>
-
             <label for="rating">Rating (1.0 to 10.0)</label>
             <input
                 type="number"
@@ -38,12 +32,10 @@ Bake at 350°F for 25 minutes."
                 placeholder="9.0"
                 required
             >
-
             <label for="images">Upload Photo(s)</label>
             <input type="file" id="images" name="images" accept="image/*" multiple>
-
             <div style="margin-top: 18px;">
-                <button type="submit">Save Recipe</button>
+                <button type="submit" class="button">Save Recipe</button>
             </div>
         </form>
     </div>
