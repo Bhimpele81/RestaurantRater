@@ -1,5 +1,5 @@
 Flask==3.0.0
 Werkzeug==3.0.1
-SQLAlchemy==2.0.23
+SQLAlchemy==2.0.36
 psycopg[binary]==3.2.10
 gunicorn==21.2.0
